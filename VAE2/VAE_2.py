@@ -208,8 +208,7 @@ vae.fit(
     epochs=EPOCHS,
     callbacks=[
         model_checkpoint_callback,
-        tensorboard_callback,
-        ImageGenerator(num_img=10, latent_dim=LATENT_DIM),
+        tensorboard_callback
     ],
 )
 
