@@ -41,7 +41,7 @@ def load_spectrograms(spectrogram_dir):
     return spectrograms, file_names
 
 #SPECTROGRAM_DIR = r"C:\Users\Jayde\Desktop\library\bird_songs\data\bird_songs\spectrograms"
-SPECTROGRAM_DIR = "/home/jayden/decoding-animal-communication/VAE_sounds_test/spectrograms"
+SPECTROGRAM_DIR = "/home/jayden/decoding-animimal-communication/VAE_sounds_test/spectrograms"
 train_data, file_names = load_spectrograms(SPECTROGRAM_DIR)
 #train_data = tf.data.Dataset.from_tensor_slices(spectrograms)
 #train_data = train_data.batch(batch_size = 32, drop_remainder=True)
