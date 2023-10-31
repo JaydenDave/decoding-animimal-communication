@@ -22,7 +22,7 @@ BATCH_SIZE = 4
 LATENT_DIM = 200
 BETA = 2000
 LEARNING_RATE = 0.0005
-EPOCHS = 5
+EPOCHS = 50
 VALIDATION_SPLIT = 0.2
 
 def load_spectrograms(spectrogram_dir):
