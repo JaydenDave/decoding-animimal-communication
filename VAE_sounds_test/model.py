@@ -9,7 +9,6 @@ from tensorflow.python.keras import (
     utils,
     metrics,
     optimizers,
-    datasets,
 )
 import tensorflow.python.keras.backend as K
 
