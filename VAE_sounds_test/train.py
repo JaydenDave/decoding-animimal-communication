@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-from tensorflow.keras import (
+from tensorflow.python.keras import (
     layers,
     models,
     callbacks,
@@ -12,7 +12,7 @@ from tensorflow.keras import (
     optimizers,
     datasets,
 )
-import tensorflow.keras.backend as K
+import tensorflow.python.keras.backend as K
 from model import VAE
 
 INPUT_SHAPE = (256,64,1)

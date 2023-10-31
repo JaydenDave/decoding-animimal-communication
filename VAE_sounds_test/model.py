@@ -1,7 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
-from tensorflow.keras import (
+from tensorflow.python.keras import (
     layers,
     models,
     callbacks,
@@ -11,7 +11,7 @@ from tensorflow.keras import (
     optimizers,
     datasets,
 )
-import tensorflow.keras.backend as K
+import tensorflow.python.keras.backend as K
 
 
 INPUT_SHAPE = (256,64,1)
@@ -19,7 +19,7 @@ CONV_FILTERS = (512, 256, 128, 64, 32)
 N_CHANNELS = INPUT_SHAPE[2]
 BATCH_SIZE = 128
 LATENT_DIM = 200
-BETA = 20000
+BETA = 100
 LEARNING_RATE = 0.0005
 EPOCHS = 5
 VALIDATION_SPLIT = 0.2
