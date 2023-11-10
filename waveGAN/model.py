@@ -123,7 +123,7 @@ class WaveGAN(models.Model):
             ]
     
     def gradient_penalty(self, batch_size, real_data, fake_data):
-        alpha = tf.random.normal([batch_size, 1, 1, 1], 0.0, 1.0) # each audio file in the batch gets a random number between 0 and 1, stored as the vector alpha
+        alpha = tf.random.normal([batch_size, 1, 1], 0.0, 1.0) # each audio file in the batch gets a random number between 0 and 1, stored as the vector alpha
         diff = fake_data - real_data
         interpolated = real_data +alpha*diff
 
@@ -134,7 +134,7 @@ class WaveGAN(models.Model):
         #gradient of the preds wrt the inputs
         grads = gp_tape.gradient(pred, [interpolated])[0]
 
-        norm= tf.sqrt(tf.reduce_sum(tf.square(grads), axis = [1,2,3]))
+        norm= tf.sqrt(tf.reduce_sum(tf.square(grads), axis = [1,2]))
         gp = tf.reduce_mean((norm -1.0)**2) #returns avg square distance between L2 norm and 1
         return gp
     

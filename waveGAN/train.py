@@ -13,7 +13,7 @@ from tensorflow.keras import (
 )
 import librosa as lb
 from model import WaveGAN
-
+from preprocess import load_raw_audio
 DIM = 64
 CHANNELS = 1 #keeping as 1? what for mono or stereo?
 PHASE_PARAM = 2
@@ -25,7 +25,6 @@ ADAM_BETA_1 = 0.5
 ADAM_BETA_2 = 0.9
 BATCH_SIZE = 64
 EPOCHS = 100
-
 if tf.config.list_physical_devices('GPU'):
   print("TensorFlow **IS** using the GPU")
 else:
@@ -53,29 +52,10 @@ model_checkpoint_callback = callbacks.ModelCheckpoint(
 )
 tensorboard_callback = callbacks.TensorBoard(log_dir="./logs")
 
-def load_raw_audio(data_path):
-    audio = []
-    for folder in os.listdir(data_path):
-        path = os.path.join(data_path, folder)
-        for file in os.listdir(path):
-            file_path = os.path.join(path, file)
-            signal, sr = lb.load(file_path)
-            signal = pad_audio(signal, max = 22050)
-            audio.append(signal)
-        print(f"Loaded audio from {folder}")
-    print(f"Loaded audio from {data_path}")
-    return audio
 
-def pad_audio(signal, max):
-    if len(signal) < max:
-        num_missing_samples = max - len(signal)
-        padded_array = np.pad(signal,
-                              (0,num_missing_samples),
-                              mode = "constant")
-        return padded_array
-    return signal
 
-path = r"C:\Users\Jayde\Desktop\Datasets\sc09\sc09"
+#path = r"C:\Users\Jayde\Desktop\Datasets\sc09\sc09"
+path = "/home/jayden/sc09/train"
 train_data = load_raw_audio(path)
 
 wavegan.fit(
