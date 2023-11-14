@@ -55,8 +55,10 @@ tensorboard_callback = callbacks.TensorBoard(log_dir="./logs")
 
 
 #path = r"C:\Users\Jayde\Desktop\Datasets\sc09\sc09"
-path = "/home/jayden/sc09/train"
-train_data = load_raw_audio(path)
+
+#path = "/home/jayden/sc09/train"
+path = "/mt/home/jdave/datasets/sc09/sc09/train"
+train_data = load_raw_audio(path, n_train_data= 320)
 
 wavegan.fit(
     train_data,

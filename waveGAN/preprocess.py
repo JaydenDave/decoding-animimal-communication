@@ -2,6 +2,7 @@ import numpy as np
 import os
 import librosa as lb
 import pickle
+import random
 
 
 def set_duration(signal, max):
@@ -29,7 +30,7 @@ def z_score_normalise(array):
             pickle.dump(norm_vals, f)
     return normalized_samples
 
-def load_raw_audio(data_path, folders = False):
+def load_raw_audio(data_path, n_train_data,folders = False):
     audio = []
     if folders:
         for folder in os.listdir(data_path):
@@ -50,8 +51,14 @@ def load_raw_audio(data_path, folders = False):
     print(f"Loaded audio from {data_path}")
 
     audio = np.array(audio)
+    print(f"obtained {len(audio)} samples")
+    audio = audio[:n_train_data]
+    print(f"reduced to {n_train_data} training samlples")
+
     audio = z_score_normalise(audio)
     print("normalised")
+    random.shuffle(audio)
+    
     audio = np.expand_dims(audio, axis=-1)
     return audio
 
