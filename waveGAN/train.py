@@ -42,13 +42,13 @@ wavegan.compile(
 )
 
 model_checkpoint_callback = callbacks.ModelCheckpoint(
-    filepath="./checkpoint",
+    filepath="checkpoints/checkpoint_epoch-{epoch:02d}.hdf5",
     save_weights_only=False,
     save_freq="epoch",
     monitor="loss",
     mode="min",
     save_best_only=True,
-    verbose=0,
+    verbose=1,
 )
 tensorboard_callback = callbacks.TensorBoard(log_dir="./logs")
 
@@ -59,6 +59,7 @@ tensorboard_callback = callbacks.TensorBoard(log_dir="./logs")
 #path = "/home/jayden/sc09/train"
 path = "/mt/home/jdave/datasets/sc09/sc09/train"
 train_data = load_raw_audio(path, n_train_data= 320)
+
 
 wavegan.fit(
     train_data,
@@ -71,6 +72,7 @@ wavegan.fit(
     ],
 )
 
+wavegan._set_inputs(train_data)
 wavegan.save("./models/vae")
 wavegan.generator.save("./models/generator")
 wavegan.discriminator.save("./models/discriminator")
