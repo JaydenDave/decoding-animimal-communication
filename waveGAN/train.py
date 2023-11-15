@@ -71,8 +71,8 @@ wavegan.fit(
         tensorboard_callback
     ],
 )
-input = tf.TensorSpec(tf.random.normal(shape=(None, LATENT_DIM)))
-wavegan._set_inputs(input) #train data or is it looking for the normal distribution?
+#input = tf.TensorSpec(tf.random.normal(shape=(None, LATENT_DIM)))
+wavegan._set_inputs(shape=(100,)) #train data or is it looking for the normal distribution?
 wavegan.save("./models/vae")
 wavegan.generator.save("./models/generator")
 wavegan.discriminator.save("./models/discriminator")
