@@ -1,2 +1,4 @@
 .ipynb_checkpoints/Bird songs audio exploration-checkpoint.ipynb
 .ipynb_checkpoints/DCGAN test with TensorFlow-checkpoint.ipynb
+waveGAN/__pycache__/model.cpython-38.pyc
+waveGAN/__pycache__/preprocess.cpython-38.pyc

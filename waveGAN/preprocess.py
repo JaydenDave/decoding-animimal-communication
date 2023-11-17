@@ -16,6 +16,17 @@ def set_duration(signal, max):
         signal = signal[:max]
     return signal
 
+def denormalise(samples, normaliser_file_path):
+    with open(normaliser_file_path, 'rb') as f:
+        norm_vals = pickle.load(f)
+    mean = norm_vals["mean"]
+    std_dev = norm_vals["std_dev"]
+    print(f"DENORMALISING- MEAN:{mean}, STD_DEV:{std_dev}")
+    samples = (samples * std_dev) + mean
+    print("DENORMALISED")
+    return samples
+
+
 def z_score_normalise(array):
     flattened_array = array.flatten()
 
@@ -37,7 +48,7 @@ def load_raw_audio(data_path, n_train_data,folders = False):
             path = os.path.join(data_path, folder)
             for file in os.listdir(path):
                 file_path = os.path.join(path, file)
-                signal, sr = lb.load(file_path)
+                signal, sr = lb.load(file_path, sr= 16000) #loading in at 16KHz sampling rate
                 #22050
                 signal = set_duration(signal, max = 16384)
                 audio.append(signal)
