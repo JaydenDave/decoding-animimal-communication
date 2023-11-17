@@ -14,7 +14,7 @@ from tensorflow.keras import (
 import librosa as lb
 from model import WaveGAN
 from preprocess import load_raw_audio
-from datetime import datetime
+import datetime
 DIM = 64
 CHANNELS = 1 #keeping as 1? what for mono or stereo?
 PHASE_PARAM = 2
@@ -76,8 +76,8 @@ wavegan.fit(
 #wavegan.build((0,100)) #train data or is it looking for the normal distribution?
 #tf.saved_model.save(wavegan,"wavegan")
 #wavegan.save("./models/vae")
-time = datetime.now.ToString("ddMM_hhmm")
-model_path = f"/mt/home/jdave/onedrive/models{time}"
+time = datetime.datetime.now().strftime("%d%m.%H%M")
+model_path = f"/mt/home/jdave/onedrive/models_{time}"
 wavegan.generator.save(f"{model_path}/generator")
 wavegan.discriminator.save(f"{model_path}/discriminator")
 print("models saved")
