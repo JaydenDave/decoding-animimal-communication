@@ -24,7 +24,7 @@ LEARNING_RATE = 1e-4
 ADAM_BETA_1 = 0.5
 ADAM_BETA_2 = 0.9
 BATCH_SIZE = 64
-EPOCHS = 100
+EPOCHS = 5
 if tf.config.list_physical_devices('GPU'):
   print("TensorFlow **IS** using the GPU")
 else:
@@ -72,8 +72,9 @@ wavegan.fit(
     ],
 )
 #input = tf.TensorSpec(tf.random.normal(shape=(None, LATENT_DIM)))
-wavegan._set_inputs(shape=(100,)) #train data or is it looking for the normal distribution?
-wavegan.save("./models/vae")
+#wavegan.build((0,100)) #train data or is it looking for the normal distribution?
+tf.saved_model.save(wavegan,"wavegan")
+#wavegan.save("./models/vae")
 wavegan.generator.save("./models/generator")
 wavegan.discriminator.save("./models/discriminator")
 print("models saved")

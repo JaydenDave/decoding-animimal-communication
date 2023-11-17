@@ -103,10 +103,6 @@ class WaveGAN(models.Model):
         self.discriminator_steps = discriminator_steps
         self.gp_weight = gp_weight
     
-    def call(self, input):
-        generated = self.generator(input)
-        score= self.discriminator(generated)
-        return generated, score
     
     def compile(self, d_optimizer, g_optimizer):
         super(WaveGAN, self).compile()
