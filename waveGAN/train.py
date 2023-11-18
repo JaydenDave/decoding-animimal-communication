@@ -53,6 +53,7 @@ model_checkpoint_callback = callbacks.ModelCheckpoint(
 )
 time = datetime.datetime.now().strftime("%d%m.%H%M")
 model_path = f"/mt/home/jdave/onedrive/models_{time}"
+os.mkdir(model_path)
 
 tensorboard_callback = callbacks.TensorBoard(log_dir=f"{model_path}/logs")
 
