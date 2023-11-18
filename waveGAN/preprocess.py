@@ -27,7 +27,7 @@ def denormalise(samples, normaliser_file_path):
     return samples
 
 
-def z_score_normalise(array):
+def z_score_normalise(array, save_path = "."):
     flattened_array = array.flatten()
 
     # Calculate the mean and standard deviation of the entire set
@@ -37,11 +37,11 @@ def z_score_normalise(array):
     # Z-score normalize each audio clip individually
     normalized_samples = (array - mean_value) / std_deviation
     norm_vals = {"mean": mean_value, "std_dev": std_deviation}
-    with open("./normaliser_values", "wb") as f:
+    with open(f"{save_path}/normaliser_values", "wb") as f:
             pickle.dump(norm_vals, f)
     return normalized_samples
 
-def load_raw_audio(data_path, n_train_data,folders = False):
+def load_raw_audio(data_path, n_train_data, model_path, folders = False):
     audio = []
     if folders:
         for folder in os.listdir(data_path):
@@ -66,7 +66,7 @@ def load_raw_audio(data_path, n_train_data,folders = False):
     audio = audio[:n_train_data]
     print(f"reduced to {n_train_data} training samlples")
 
-    audio = z_score_normalise(audio)
+    audio = z_score_normalise(audio, model_path)
     print("normalised")
     random.shuffle(audio)
     

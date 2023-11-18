@@ -25,7 +25,7 @@ LEARNING_RATE = 1e-4
 ADAM_BETA_1 = 0.5
 ADAM_BETA_2 = 0.9
 BATCH_SIZE = 64
-EPOCHS = 5
+EPOCHS = 3000
 if tf.config.list_physical_devices('GPU'):
   print("TensorFlow **IS** using the GPU")
 else:
@@ -51,7 +51,10 @@ model_checkpoint_callback = callbacks.ModelCheckpoint(
     save_best_only=True,
     verbose=1,
 )
-tensorboard_callback = callbacks.TensorBoard(log_dir="./logs")
+time = datetime.datetime.now().strftime("%d%m.%H%M")
+model_path = f"/mt/home/jdave/onedrive/models_{time}"
+
+tensorboard_callback = callbacks.TensorBoard(log_dir=f"{model_path}/logs")
 
 
 
@@ -59,7 +62,7 @@ tensorboard_callback = callbacks.TensorBoard(log_dir="./logs")
 
 #path = "/home/jayden/sc09/train"
 path = "/mt/home/jdave/datasets/sc09/sc09/train"
-train_data = load_raw_audio(path, n_train_data= 640)
+train_data = load_raw_audio(path, n_train_data= 640*5, model_path= model_path)
 
 
 wavegan.fit(
@@ -76,8 +79,7 @@ wavegan.fit(
 #wavegan.build((0,100)) #train data or is it looking for the normal distribution?
 #tf.saved_model.save(wavegan,"wavegan")
 #wavegan.save("./models/vae")
-time = datetime.datetime.now().strftime("%d%m.%H%M")
-model_path = f"/mt/home/jdave/onedrive/models_{time}"
+
 wavegan.generator.save(f"{model_path}/generator")
 wavegan.discriminator.save(f"{model_path}/discriminator")
 print("models saved")
