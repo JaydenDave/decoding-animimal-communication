@@ -50,7 +50,7 @@ model_path = f"/mt/home/jdave/onedrive/models_{time}"
 os.mkdir(model_path)
 
 model_checkpoint_callback = callbacks.ModelCheckpoint(
-    filepath=os.path.join(model_path,"checkpoints/checkpoint_epoch-{epoch:04d}.hdf5"),
+    filepath=os.path.join(model_path,"checkpoints/checkpoint_epoch-{epoch:04d}"),
     save_weights_only=False,
     save_freq=CHECKPOINT_FREQ,
     monitor="loss",
