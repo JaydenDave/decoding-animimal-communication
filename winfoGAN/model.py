@@ -25,30 +25,6 @@ BATCH_SIZE = 64
 EPOCHS = 100
 
 
-def create_inputs(latent_dim, n_categories, batch_size):
-    #incompressible noise vector
-    z_dim = latent_dim - n_categories
-    z = tf.random.normal(shape=(batch_size, z_dim))
-
-    #categorical latent codes
-    #list of integers range 0 -> n_categories (batch size number of them)
-    idxs = np.random.randint(n_categories, size=batch_size)
-    #create array of zeros with batch size rows and n_categories columns
-    c = np.zeros((batch_size, n_categories))
-    #set elements of c to 1. the np.arange bit is looking at each row, and then sets row[idx] to 1 (with the random index) 
-    c[np.arange(batch_size), idxs] = 1
-
-    #inputs = np.zeros([batch_size, latent_dim])
-    #inputs[:, : z_dim] = z
-    #inputs[:,z_dim:] = c
-
-    # Convert `c` to a TensorFlow tensor
-    c = tf.convert_to_tensor(c, dtype=tf.float32)
-
-    # Concatenate `z` and `c`
-    inputs = tf.concat([z, c], axis=1)
-    return inputs
-
 def generator():
     dim_mul = 16
     gen_input = layers.Input(shape=(100,)) # input vector of legnth 100 (z sampled from uniform normal dist)
@@ -119,9 +95,8 @@ def discriminator():
     discriminator = models.Model(dis_input, dis_output, name="discriminator")
     return discriminator
 
-def auxiliary():   
+def auxiliary(num_codes):   
     dim_mul = 16
-    num_codes = 5
     aux_input = layers.Input(shape = (dim_mul*dim_mul*DIM, CHANNELS,), name = "aux_input")
     x = layers.Conv1D(filters = DIM, strides = 4, kernel_size = 25, padding = "same", use_bias = True)(aux_input)
     x = layers.LeakyReLU(alpha = 0.2)(x)
@@ -155,7 +130,7 @@ class GAN(models.Model):
         super(GAN, self).__init__()
         self.discriminator = discriminator()
         self.generator = generator()
-        self.auxiliary = auxiliary()
+        self.auxiliary = auxiliary(n_categories)
         self.latent_dim = latent_dim
         self.discriminator_steps = discriminator_steps
         self.gp_weight = gp_weight
@@ -207,12 +182,36 @@ class GAN(models.Model):
         lcat = tf.nn.softmax_cross_entropy_with_logits(labels=input_cat, logits=q_cat)
         return tf.reduce_mean(lcat)
     
+    def create_inputs(self, batch_size):
+        #incompressible noise vector
+        z_dim = self.latent_dim - self.n_categories
+        z = tf.random.normal(shape=(batch_size, z_dim))
+
+        #categorical latent codes
+        #list of integers range 0 -> n_categories (batch size number of them)
+        idxs = np.random.randint(self.n_categories, size=batch_size)
+        #create array of zeros with batch size rows and n_categories columns
+        c = np.zeros((batch_size, self.n_categories))
+        #set elements of c to 1. the np.arange bit is looking at each row, and then sets row[idx] to 1 (with the random index) 
+        c[np.arange(batch_size), idxs] = 1
+
+        #inputs = np.zeros([batch_size, latent_dim])
+        #inputs[:, : z_dim] = z
+        #inputs[:,z_dim:] = c
+
+        # Convert `c` to a TensorFlow tensor
+        c = tf.convert_to_tensor(c, dtype=tf.float32)
+
+        # Concatenate `z` and `c`
+        inputs = tf.concat([z, c], axis=1)
+        return inputs
+    
     def train_step(self, real_data):
         batch_size = tf.shape(real_data)[0]
 
         #update discriminator a few times
         for i in range(self.discriminator_steps):
-            inputs = create_inputs(self.latent_dim, self.n_categories, BATCH_SIZE)
+            inputs = self.create_inputs(BATCH_SIZE)
 
             with tf.GradientTape() as tape:
                 generated_data = self.generator(inputs, training = True)
@@ -227,7 +226,7 @@ class GAN(models.Model):
             self.d_optimizer.apply_gradients(zip(d_gradient, self.discriminator.trainable_variables))
         
         #update generator
-        inputs = create_inputs(self.latent_dim, self.n_categories, BATCH_SIZE)
+        inputs = self.create_inputs(BATCH_SIZE)
         
         with tf.GradientTape() as tape:
             generated_data = self.generator(inputs, training = True)

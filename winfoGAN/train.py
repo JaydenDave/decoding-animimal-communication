@@ -50,7 +50,7 @@ model_checkpoint_callback = callbacks.ModelCheckpoint(
     save_freq="epoch",
     monitor="loss",
     mode="min",
-    save_best_only=True,
+    save_best_only=False,
     verbose=1,
 )
 time = datetime.datetime.now().strftime("%d%m.%H%M")
@@ -65,6 +65,7 @@ tensorboard_callback = callbacks.TensorBoard(log_dir=f"{model_path}/logs")
 
 #path = "/home/jayden/sc09/train"
 path = "/mt/home/jdave/datasets/sc09/sc09/train"
+print(f"Loading data from {path}")
 train_data = load_raw_audio(path, n_train_data= 640, model_path= model_path)
 
 
