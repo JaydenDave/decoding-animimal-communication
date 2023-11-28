@@ -26,7 +26,7 @@ ADAM_BETA_1 = 0.5
 ADAM_BETA_2 = 0.9
 BATCH_SIZE = 64
 EPOCHS = 3000
-CHECKPOINT_FREQ = 1000
+CHECKPOINT_FREQ = 4
 if tf.config.list_physical_devices('GPU'):
   print("TensorFlow **IS** using the GPU")
 else:
@@ -48,6 +48,17 @@ wavegan.compile(
 time = datetime.datetime.now().strftime("%d%m.%H%M")
 model_path = f"/mt/home/jdave/onedrive/models_{time}"
 os.mkdir(model_path)
+
+
+class Generator_Save_Callback(callbacks.Callback):
+    def __init__(self, freq):
+        self.freq = freq
+
+    def on_epoch_end(self, epoch, logs=None):
+        if epoch % self.freq == 0:
+            wavegan.generator.save(f"{model_path}/generator{epoch}")
+
+save_gen_callback= Generator_Save_Callback(CHECKPOINT_FREQ)
 
 model_checkpoint_callback = callbacks.ModelCheckpoint(
     filepath=os.path.join(model_path,"checkpoints/checkpoint_epoch-{epoch:04d}"),
@@ -78,7 +89,7 @@ wavegan.fit(
     shuffle = True,
     epochs=EPOCHS,
     callbacks=[
-        model_checkpoint_callback,
+        save_gen_callback,
         tensorboard_callback
     ],
 )

@@ -95,7 +95,7 @@ def discriminator():
     discriminator = models.Model(dis_input, dis_output, name="discriminator")
     return discriminator
 
-def auxiliary(num_codes):   
+def auxiliary(num_cat, num_cont):   
     dim_mul = 16
     aux_input = layers.Input(shape = (dim_mul*dim_mul*DIM, CHANNELS,), name = "aux_input")
     x = layers.Conv1D(filters = DIM, strides = 4, kernel_size = 25, padding = "same", use_bias = True)(aux_input)
@@ -119,7 +119,7 @@ def auxiliary(num_codes):
     #x = layers.Reshape((4*4*dim_mul*DIM))(x)
     x = layers.Flatten()(x)
     
-    output = layers.Dense(units = num_codes, use_bias = True)(x)
+    output = layers.Dense(units = num_cat+num_cont, use_bias = True)(x)
     #dont need softmax activation because the softmax cross entropy on the loss function has it built in
 
     auxiliary = models.Model(aux_input, output, name="auxiliary")
@@ -130,7 +130,7 @@ class GAN(models.Model):
         super(GAN, self).__init__()
         self.discriminator = discriminator()
         self.generator = generator()
-        self.auxiliary = auxiliary(n_categories)
+        self.auxiliary = auxiliary(n_categories, n_cont)
         self.latent_dim = latent_dim
         self.discriminator_steps = discriminator_steps
         self.gp_weight = gp_weight
@@ -178,37 +178,31 @@ class GAN(models.Model):
     def q_cost_tf(self, input, q):
         #q is Q(G(z,c)) output from q network
         z_dim = self.latent_dim - self.n_categories - self.n_cont
-        input_cat = input[:, z_dim: z_dim+self.n_categories]
-        input_con = input[:, z_dim+self.n_categories:]
+        input_cat = input[:, z_dim+self.n_cont:]
+        input_con = input[:, z_dim: z_dim+self.n_cont:]
         
-        q_cat = q[:, :self.n_categories]
-        q_con = q[:, self.n_categories:]
+        q_cat = q[:, self.n_cont:]
+        q_con = q[:, :self.n_cont]
         lcat = tf.nn.softmax_cross_entropy_with_logits(labels=input_cat, logits=q_cat)
-        
+        #l con
         return tf.reduce_mean(lcat)
     
     def create_inputs(self, batch_size):
         #incompressible noise vector
-        z_dim = self.latent_dim - self.n_categories
-        z = tf.random.normal(shape=(batch_size, z_dim))
+        z_dim = self.latent_dim - self.n_categories - self.n_cont
+        #continuous codes are the same as z
+        z_and_cont = tf.random.normal(shape=(batch_size, z_dim+ self.n_cont))
 
         #categorical latent codes
         #list of integers range 0 -> n_categories (batch size number of them)
         idxs = np.random.randint(self.n_categories, size=batch_size)
         #create array of zeros with batch size rows and n_categories columns
-        c = np.zeros((batch_size, self.n_categories))
+        cat = np.zeros((batch_size, self.n_categories))
         #set elements of c to 1. the np.arange bit is looking at each row, and then sets row[idx] to 1 (with the random index) 
-        c[np.arange(batch_size), idxs] = 1
+        cat[np.arange(batch_size), idxs] = 1
+        cat = tf.convert_to_tensor(cat, dtype=tf.float32)
 
-        #inputs = np.zeros([batch_size, latent_dim])
-        #inputs[:, : z_dim] = z
-        #inputs[:,z_dim:] = c
-
-        # Convert `c` to a TensorFlow tensor
-        c = tf.convert_to_tensor(c, dtype=tf.float32)
-
-        # Concatenate `z` and `c`
-        inputs = tf.concat([z, c], axis=1)
+        inputs = tf.concat([z_and_cont, cat], axis=1)
         return inputs
     
     def train_step(self, real_data):
