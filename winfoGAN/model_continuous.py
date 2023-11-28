@@ -184,8 +184,8 @@ class GAN(models.Model):
         q_cat = q[:, self.n_cont:]
         q_con = q[:, :self.n_cont]
         lcat = tf.nn.softmax_cross_entropy_with_logits(labels=input_cat, logits=q_cat)
-        #l con
-        return tf.reduce_mean(lcat)
+        lcon =  0.5 * tf.square(input_con - q_con)
+        return tf.reduce_mean(lcat) + tf.reduce_mean(lcon)
     
     def create_inputs(self, batch_size):
         #incompressible noise vector

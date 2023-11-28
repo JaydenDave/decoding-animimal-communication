@@ -12,7 +12,8 @@ from tensorflow.keras import (
     optimizers,
 )
 import librosa as lb
-from model import GAN
+#from model import GAN
+from model_continuous import GAN
 from preprocess import load_raw_audio
 import datetime
 DIM = 64
@@ -36,7 +37,8 @@ wavegan = GAN(
     latent_dim = LATENT_DIM,
     discriminator_steps= DISCRIMINATOR_STEPS,
     gp_weight= GP_WEIGHT,
-    n_categories= 10
+    n_categories= 10,
+    n_cont= 2
 )
 
 wavegan.compile(
@@ -56,7 +58,9 @@ class Generator_Save_Callback(callbacks.Callback):
 
     def on_epoch_end(self, epoch, logs=None):
         if epoch % self.freq == 0:
-            wavegan.generator.save(f"{model_path}/generator{epoch}")
+            save_path = f"{model_path}/generator{epoch}"
+            wavegan.generator.save(save_path)
+            print(f"Saved Generator to {save_path}")
 
 save_gen_callback= Generator_Save_Callback(CHECKPOINT_FREQ)
 
