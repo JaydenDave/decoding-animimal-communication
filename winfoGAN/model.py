@@ -41,7 +41,7 @@ def create_inputs(latent_dim, n_categories, batch_size):
     inputs = np.zeros([batch_size, latent_dim])
     inputs[:, : z_dim] = z
     inputs[:,z_dim:] = c
-    return inputs
+    return tf.convert_to_tensor(inputs)
 
 def generator():
     dim_mul = 16
