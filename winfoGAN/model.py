@@ -234,14 +234,18 @@ class GAN(models.Model):
             code_predictions = self.auxiliary(generated_data, training = True)
             g_loss = -tf.reduce_mean(generated_predictions)
             q_loss = self.q_cost_tf(inputs, code_predictions)
+            q_gradient = tape.gradient(q_loss, self.generator.trainable_variables + self.auxiliary.trainable_variables)
 
         #update generator based on generator loss
         gen_gradient = tape.gradient(g_loss, self.generator.trainable_variables)
         self.g_optimizer.apply_gradients(zip(gen_gradient, self.generator.trainable_variables))
         
         #update g and q together with q loss
-        q_gen_gradient = tape.gradient(q_loss, self.generator.trainable_variables + self.auxiliary.trainable_variables)
-        self.q_optimizer.apply_gradients(zip(q_gen_gradient, self.generator.trainable_variables + self.auxiliary.trainable_variables))
+        q_gen_gradient = q_gradient[:len(self.generator.trainable_variables)]
+        q_aux_gradient = q_gradient[len(self.generator.trainable_variables):]
+        #self.q_optimizer.apply_gradients(zip(q_gen_gradient, self.generator.trainable_variables + self.auxiliary.trainable_variables))
+        self.g_optimizer.apply_gradients(zip(q_gen_gradient, self.generator.trainable_variables))
+        self.q_optimizer.apply_gradients(zip(q_aux_gradient, self.auxiliary.trainable_variables))
             
         self.d_loss_metric.update_state(d_loss)
         self.d_wass_loss_metric.update_state(d_wass_loss)

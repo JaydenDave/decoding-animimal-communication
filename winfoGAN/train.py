@@ -26,6 +26,7 @@ ADAM_BETA_1 = 0.5
 ADAM_BETA_2 = 0.9
 BATCH_SIZE = 64
 EPOCHS = 3000
+CHECKPOINT_FREQ = 1000
 if tf.config.list_physical_devices('GPU'):
   print("TensorFlow **IS** using the GPU")
 else:
@@ -44,18 +45,21 @@ wavegan.compile(
     q_optimizer= optimizers.RMSprop(learning_rate = LEARNING_RATE)
 )
 
+time = datetime.datetime.now().strftime("%d%m.%H%M")
+model_path = f"/mt/home/jdave/onedrive/models_{time}"
+os.mkdir(model_path)
+
 model_checkpoint_callback = callbacks.ModelCheckpoint(
-    filepath="checkpoints/checkpoint_epoch-{epoch:02d}.hdf5",
+    filepath=os.path.join(model_path,"checkpoints/checkpoint_epoch-{epoch:04d}.hdf5"),
     save_weights_only=False,
-    save_freq="epoch",
+    save_freq="period",
+    period = CHECKPOINT_FREQ,
     monitor="loss",
     mode="min",
     save_best_only=False,
     verbose=1,
 )
-time = datetime.datetime.now().strftime("%d%m.%H%M")
-model_path = f"/mt/home/jdave/onedrive/models_{time}"
-os.mkdir(model_path)
+
 
 tensorboard_callback = callbacks.TensorBoard(log_dir=f"{model_path}/logs")
 
