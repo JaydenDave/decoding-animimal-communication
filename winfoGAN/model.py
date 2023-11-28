@@ -38,10 +38,16 @@ def create_inputs(latent_dim, n_categories, batch_size):
     #set elements of c to 1. the np.arange bit is looking at each row, and then sets row[idx] to 1 (with the random index) 
     c[np.arange(batch_size), idxs] = 1
 
-    inputs = np.zeros([batch_size, latent_dim])
-    inputs[:, : z_dim] = z
-    inputs[:,z_dim:] = c
-    return tf.convert_to_tensor(inputs)
+    #inputs = np.zeros([batch_size, latent_dim])
+    #inputs[:, : z_dim] = z
+    #inputs[:,z_dim:] = c
+
+    # Convert `c` to a TensorFlow tensor
+    c = tf.convert_to_tensor(c, dtype=tf.float32)
+
+    # Concatenate `z` and `c`
+    inputs = tf.concat([z, c], axis=1)
+    return inputs
 
 def generator():
     dim_mul = 16
