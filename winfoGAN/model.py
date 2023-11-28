@@ -228,7 +228,7 @@ class GAN(models.Model):
         #update generator
         inputs = self.create_inputs(BATCH_SIZE)
         
-        with tf.GradientTape() as tape:
+        with tf.GradientTape(persistent= True) as tape:
             generated_data = self.generator(inputs, training = True)
             generated_predictions = self.discriminator(generated_data, training = True)
             code_predictions = self.auxiliary(generated_data, training = True)
@@ -241,8 +241,7 @@ class GAN(models.Model):
         self.g_optimizer.apply_gradients(zip(gen_gradient, self.generator.trainable_variables))
         
         #update g and q together with q loss
-        q_gen_gradient = tape.gradient(q_loss, self.generator.trainable_variables)
-        q_aux_gradient= tape.gradient(q_loss, self.auxiliary.trainable_variables)
+        q_gen_gradient, q_aux_gradient = tape.gradient(q_loss, [self.generator.trainable_variables,self.auxiliary.trainable_variables])
         self.g_optimizer.apply_gradients(zip(q_gen_gradient, self.generator.trainable_variables))
         self.q_optimizer.apply_gradients(zip(q_aux_gradient, self.auxiliary.trainable_variables))
             
