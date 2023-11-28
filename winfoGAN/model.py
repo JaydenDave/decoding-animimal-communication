@@ -178,8 +178,8 @@ class GAN(models.Model):
         #q is Q(G(z,c)) output from q network
         z_dim = self.latent_dim - self.n_categories
         input_cat = input[:, z_dim:]
-        q_cat = q[:, z_dim:]
-        lcat = tf.nn.softmax_cross_entropy_with_logits(labels=input_cat, logits=q_cat)
+        #q_cat = q[:, z_dim:]
+        lcat = tf.nn.softmax_cross_entropy_with_logits(labels=input_cat, logits=q)
         return tf.reduce_mean(lcat)
     
     def create_inputs(self, batch_size):
