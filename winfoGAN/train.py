@@ -52,8 +52,7 @@ os.mkdir(model_path)
 model_checkpoint_callback = callbacks.ModelCheckpoint(
     filepath=os.path.join(model_path,"checkpoints/checkpoint_epoch-{epoch:04d}.hdf5"),
     save_weights_only=False,
-    save_freq="period",
-    period = CHECKPOINT_FREQ,
+    save_freq=CHECKPOINT_FREQ,
     monitor="loss",
     mode="min",
     save_best_only=False,
