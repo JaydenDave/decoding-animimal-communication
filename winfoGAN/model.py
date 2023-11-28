@@ -201,8 +201,9 @@ class GAN(models.Model):
     
     def q_cost_tf(self, input, q):
         #q is Q(G(z,c)) output from q network
-        input_cat = input[:, : self.n_categories]
-        q_cat = q[:, : self.n_categories]
+        z_dim = self.latent_dim - self.n_categories
+        input_cat = input[:, z_dim:]
+        q_cat = q[:, z_dim:]
         lcat = tf.nn.softmax_cross_entropy_with_logits(labels=input_cat, logits=q_cat)
         return tf.reduce_mean(lcat)
     
