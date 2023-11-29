@@ -22,7 +22,7 @@ PHASE_PARAM = 2
 LATENT_DIM = 100
 DISCRIMINATOR_STEPS = 5
 GP_WEIGHT = 10
-LEARNING_RATE = 1e-4
+LEARNING_RATE = 1e-2
 ADAM_BETA_1 = 0.5
 ADAM_BETA_2 = 0.9
 BATCH_SIZE = 64
@@ -32,6 +32,8 @@ if tf.config.list_physical_devices('GPU'):
   print("TensorFlow **IS** using the GPU")
 else:
   print("TensorFlow **IS NOT** using the GPU")
+  print("Exiting...")
+  exit()
 
 wavegan = GAN(
     latent_dim = LATENT_DIM,
