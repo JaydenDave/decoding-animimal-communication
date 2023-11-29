@@ -22,11 +22,11 @@ PHASE_PARAM = 2
 LATENT_DIM = 100
 DISCRIMINATOR_STEPS = 5
 GP_WEIGHT = 10
-LEARNING_RATE = 1e-2
+LEARNING_RATE = 1e-5 #from 1e-4
 ADAM_BETA_1 = 0.5
 ADAM_BETA_2 = 0.9
 BATCH_SIZE = 64
-EPOCHS = 5000
+EPOCHS = 10000
 CHECKPOINT_FREQ = 1000
 if tf.config.list_physical_devices('GPU'):
   print("TensorFlow **IS** using the GPU")
