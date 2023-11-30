@@ -149,6 +149,8 @@ class GAN(models.Model):
         self.d_loss_metric = metrics.Mean(name="d_loss")
         self.g_loss_metric = metrics.Mean(name="g_loss")
         self.q_loss_metric = metrics.Mean(name="q_loss")
+        self.d_acc_real_metric = metrics.Mean(name = "d_acc_real")
+        self.d_acc_gen_metric = metrics.Mean(name = "d_acc_gen")
     @property
     def metrics(self):
         return [
@@ -157,6 +159,8 @@ class GAN(models.Model):
             self.d_gp_metric,
             self.d_wass_loss_metric,
             self.q_loss_metric,
+            self.d_acc_real_metric,
+            self.d_acc_gen_metric,
             ]
     
     def gradient_penalty(self, batch_size, real_data, fake_data):
@@ -205,6 +209,19 @@ class GAN(models.Model):
         inputs = tf.concat([z_and_cont, cat], axis=1)
         return inputs
     
+    def discriminator_accuracy(self, generated_predictions, real_predictions):
+        generated_correct = 0
+        real_correct = 0
+        for i in range(BATCH_SIZE):
+            if generated_predictions[i] < 0:
+                generated_correct += 1
+            if real_predictions[i] > 0:
+                real_correct += 1
+        d_acc_real = real_correct/BATCH_SIZE
+        d_acc_gen = generated_correct/BATCH_SIZE
+        return d_acc_real, d_acc_gen
+        
+    
     def train_step(self, real_data):
         batch_size = tf.shape(real_data)[0]
 
@@ -221,6 +238,7 @@ class GAN(models.Model):
                 d_gp = self.gradient_penalty(batch_size, real_data, generated_data)
                 d_loss = d_wass_loss + d_gp*self.gp_weight
             
+            d_acc_real, d_acc_gen = self.discriminator_accuracy(generated_predictions, real_predictions)
             d_gradient = tape.gradient(d_loss, self.discriminator.trainable_variables)
             self.d_optimizer.apply_gradients(zip(d_gradient, self.discriminator.trainable_variables))
         
@@ -249,5 +267,7 @@ class GAN(models.Model):
         self.d_gp_metric.update_state(d_gp)
         self.g_loss_metric.update_state(g_loss)
         self.q_loss_metric.update_state(q_loss)
+        self.d_acc_gen_metric.update_state(d_acc_gen)
+        self.d_acc_real_metric.update_state(d_acc_real)
         
         return {m.name: m.result() for m in self.metrics}
