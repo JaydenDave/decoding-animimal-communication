@@ -212,6 +212,8 @@ class GAN(models.Model):
     def discriminator_accuracy(self, generated_predictions, real_predictions):
         generated_correct = 0
         real_correct = 0
+        generated_predictions = generated_predictions.numpy()
+        real_predictions = real_predictions.numpy()
         for i in range(BATCH_SIZE):
             if generated_predictions[i] < 0:
                 generated_correct += 1
