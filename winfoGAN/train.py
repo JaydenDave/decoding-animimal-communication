@@ -26,8 +26,8 @@ LEARNING_RATE = 1e-5 #from 1e-4
 ADAM_BETA_1 = 0.5
 ADAM_BETA_2 = 0.9
 BATCH_SIZE = 64
-EPOCHS = 10000
-CHECKPOINT_FREQ = 1000
+EPOCHS = 500
+CHECKPOINT_FREQ = 50
 if tf.config.list_physical_devices('GPU'):
   print("TensorFlow **IS** using the GPU")
 else:
