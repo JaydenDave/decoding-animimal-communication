@@ -159,8 +159,8 @@ class GAN(models.Model):
             self.d_gp_metric,
             self.d_wass_loss_metric,
             self.q_loss_metric,
-            self.d_acc_real_metric,
-            self.d_acc_gen_metric,
+            #self.d_acc_real_metric,
+            #self.d_acc_gen_metric,
             ]
     
     def gradient_penalty(self, batch_size, real_data, fake_data):
@@ -240,7 +240,7 @@ class GAN(models.Model):
                 d_gp = self.gradient_penalty(batch_size, real_data, generated_data)
                 d_loss = d_wass_loss + d_gp*self.gp_weight
             
-            d_acc_real, d_acc_gen = self.discriminator_accuracy(generated_predictions, real_predictions)
+            #d_acc_real, d_acc_gen = self.discriminator_accuracy(generated_predictions, real_predictions)
             d_gradient = tape.gradient(d_loss, self.discriminator.trainable_variables)
             self.d_optimizer.apply_gradients(zip(d_gradient, self.discriminator.trainable_variables))
         
@@ -269,7 +269,7 @@ class GAN(models.Model):
         self.d_gp_metric.update_state(d_gp)
         self.g_loss_metric.update_state(g_loss)
         self.q_loss_metric.update_state(q_loss)
-        self.d_acc_gen_metric.update_state(d_acc_gen)
-        self.d_acc_real_metric.update_state(d_acc_real)
+        #self.d_acc_gen_metric.update_state(d_acc_gen)
+        #self.d_acc_real_metric.update_state(d_acc_real)
         
         return {m.name: m.result() for m in self.metrics}

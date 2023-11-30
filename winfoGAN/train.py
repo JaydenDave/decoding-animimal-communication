@@ -43,9 +43,15 @@ wavegan = GAN(
     n_cont= 2
 )
 
+#wavegan.compile(
+#    d_optimizer = optimizers.Adam(learning_rate=LEARNING_RATE, beta_1 = ADAM_BETA_1, beta_2 = ADAM_BETA_2),
+#    g_optimizer = optimizers.Adam(learning_rate=LEARNING_RATE, beta_1 = ADAM_BETA_1, beta_2 = ADAM_BETA_2),
+#    q_optimizer= optimizers.RMSprop(learning_rate = LEARNING_RATE)
+#)
+
 wavegan.compile(
-    d_optimizer = optimizers.Adam(learning_rate=LEARNING_RATE, beta_1 = ADAM_BETA_1, beta_2 = ADAM_BETA_2),
-    g_optimizer = optimizers.Adam(learning_rate=LEARNING_RATE, beta_1 = ADAM_BETA_1, beta_2 = ADAM_BETA_2),
+    d_optimizer = optimizers.RMSprop(learning_rate = LEARNING_RATE),
+    g_optimizer = optimizers.RMSprop(learning_rate = LEARNING_RATE),
     q_optimizer= optimizers.RMSprop(learning_rate = LEARNING_RATE)
 )
 
