@@ -149,8 +149,8 @@ class GAN(models.Model):
         self.d_loss_metric = metrics.Mean(name="d_loss")
         self.g_loss_metric = metrics.Mean(name="g_loss")
         self.q_loss_metric = metrics.Mean(name="q_loss")
-        self.d_acc_real_metric = metrics.Mean(name = "d_acc_real")
-        self.d_acc_gen_metric = metrics.Mean(name = "d_acc_gen")
+        self.d_acc_real_metric = metrics.Accuracy(name = "d_acc_real")
+        self.d_acc_gen_metric = metrics.Accuracy(name = "d_acc_gen")
     @property
     def metrics(self):
         return [
@@ -159,8 +159,8 @@ class GAN(models.Model):
             self.d_gp_metric,
             self.d_wass_loss_metric,
             self.q_loss_metric,
-            #self.d_acc_real_metric,
-            #self.d_acc_gen_metric,
+            self.d_acc_real_metric,
+            self.d_acc_gen_metric,
             ]
     
     def gradient_penalty(self, batch_size, real_data, fake_data):
@@ -209,21 +209,7 @@ class GAN(models.Model):
         inputs = tf.concat([z_and_cont, cat], axis=1)
         return inputs
     
-    def discriminator_accuracy(self, generated_predictions, real_predictions):
-        generated_correct = 0
-        real_correct = 0
-        generated_predictions = generated_predictions.numpy()
-        real_predictions = real_predictions.numpy()
-        for i in range(BATCH_SIZE):
-            if generated_predictions[i] < 0:
-                generated_correct += 1
-            if real_predictions[i] > 0:
-                real_correct += 1
-        d_acc_real = real_correct/BATCH_SIZE
-        d_acc_gen = generated_correct/BATCH_SIZE
-        return d_acc_real, d_acc_gen
         
-    
     def train_step(self, real_data):
         batch_size = tf.shape(real_data)[0]
 
@@ -240,7 +226,6 @@ class GAN(models.Model):
                 d_gp = self.gradient_penalty(batch_size, real_data, generated_data)
                 d_loss = d_wass_loss + d_gp*self.gp_weight
             
-            #d_acc_real, d_acc_gen = self.discriminator_accuracy(generated_predictions, real_predictions)
             d_gradient = tape.gradient(d_loss, self.discriminator.trainable_variables)
             self.d_optimizer.apply_gradients(zip(d_gradient, self.discriminator.trainable_variables))
         
@@ -263,13 +248,27 @@ class GAN(models.Model):
         q_gen_gradient, q_aux_gradient = tape.gradient(q_loss, [self.generator.trainable_variables,self.auxiliary.trainable_variables])
         self.g_optimizer.apply_gradients(zip(q_gen_gradient, self.generator.trainable_variables))
         self.q_optimizer.apply_gradients(zip(q_aux_gradient, self.auxiliary.trainable_variables))
-            
+
+        # discriminator accuracy metric
+        real_predictions = self.discriminator(real_data, training = True)
+
+        #set predictions to -1 is <0 or 1 if >=0
+        real_predictions = tf.where(tf.greater_equal(real_predictions, 0), tf.ones_like(real_predictions), tf.ones_like(real_predictions) * -1)
+        generated_predictions = tf.where(tf.greater_equal(generated_predictions, 0), tf.ones_like(generated_predictions), tf.ones_like(generated_predictions) * -1)
+
+        #creating tensors for true labels
+        real_true_labels = tf.ones_like(real_predictions)
+        gen_true_labels = tf.ones_like(generated_predictions)
+
+        #metric.update_state(true, pred)
+        self.d_acc_gen_metric.update_state(real_true_labels, real_predictions)
+        self.d_acc_real_metric.update_state(gen_true_labels, generated_predictions)
+
         self.d_loss_metric.update_state(d_loss)
         self.d_wass_loss_metric.update_state(d_wass_loss)
         self.d_gp_metric.update_state(d_gp)
         self.g_loss_metric.update_state(g_loss)
         self.q_loss_metric.update_state(q_loss)
-        #self.d_acc_gen_metric.update_state(d_acc_gen)
-        #self.d_acc_real_metric.update_state(d_acc_real)
+        
         
         return {m.name: m.result() for m in self.metrics}
