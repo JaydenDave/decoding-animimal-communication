@@ -16,6 +16,8 @@ import librosa as lb
 from model_continuous import GAN
 from preprocess import load_raw_audio
 import datetime
+import json
+
 DIM = 64
 CHANNELS = 1 #keeping as 1? what for mono or stereo?
 PHASE_PARAM = 2
@@ -84,8 +86,9 @@ time = datetime.datetime.now().strftime("%d%m.%H%M")
 model_path = f"/mt/home/jdave/onedrive/models_{time}"
 os.mkdir(model_path)
 
-with open('model_specifications.txt', 'w') as f:
-    f.write(specs)
+spec_path = f"{model_path}/model_specifications.json"
+with open(spec_path, 'w') as f:
+    json.dump(specs, f)
 print("saved model specs")
 
 
