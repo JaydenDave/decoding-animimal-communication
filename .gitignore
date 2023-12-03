@@ -2,3 +2,5 @@
 .ipynb_checkpoints/DCGAN test with TensorFlow-checkpoint.ipynb
 waveGAN/__pycache__/model.cpython-38.pyc
 waveGAN/__pycache__/preprocess.cpython-38.pyc
+winfoGAN/__pycache__/model_continuous.cpython-38.pyc
+winfoGAN/__pycache__/preprocess.cpython-38.pyc

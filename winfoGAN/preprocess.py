@@ -47,26 +47,32 @@ def load_raw_audio(data_path, n_train_data, model_path, n_types,folders = False)
     if folders:
         for folder in os.listdir(data_path):
             path = os.path.join(data_path, folder)
-            for file in os.listdir(path):
+            for file in os.listdir(path):  
+                file_path = os.path.join(path, file)
+                signal, sr = lb.load(file_path, sr= 16000) #loading in at 16KHz sampling rate
+                #22050
+                signal = set_duration(signal, max = 16384)
+                audio.append(signal)
+            print(f"Loaded audio from {folder}")
+    else:
+        for file in os.listdir(data_path):
                 type = file.split("_")[0]
+                print(type)
                 if type not in types:
                      if len(types) == n_types:
                           continue
                      else:
                           types.append(type)
                 if type in types:   
-                    file_path = os.path.join(path, file)
+                    file_path = os.path.join(data_path, file)
                     signal, sr = lb.load(file_path, sr= 16000) #loading in at 16KHz sampling rate
                     #22050
                     signal = set_duration(signal, max = 16384)
                     audio.append(signal)
-            print(f"Loaded audio from {folder}")
-    else:
-        for file in os.listdir(data_path):
-                file_path = os.path.join(data_path, file)
-                signal, sr = lb.load(file_path)
-                signal = set_duration(signal, max = 16384)
-                audio.append(signal)
+                #file_path = os.path.join(data_path, file)
+                #signal, sr = lb.load(file_path)
+                #signal = set_duration(signal, max = 16384)
+                #audio.append(signal)
     print(f"Loaded audio from {data_path}")
 
     audio = np.array(audio)
