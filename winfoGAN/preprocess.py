@@ -41,17 +41,25 @@ def z_score_normalise(array, save_path = "."):
             pickle.dump(norm_vals, f)
     return normalized_samples
 
-def load_raw_audio(data_path, n_train_data, model_path, folders = False):
+def load_raw_audio(data_path, n_train_data, model_path, n_types,folders = False):
     audio = []
+    types = []
     if folders:
         for folder in os.listdir(data_path):
             path = os.path.join(data_path, folder)
             for file in os.listdir(path):
-                file_path = os.path.join(path, file)
-                signal, sr = lb.load(file_path, sr= 16000) #loading in at 16KHz sampling rate
-                #22050
-                signal = set_duration(signal, max = 16384)
-                audio.append(signal)
+                type = file.split("_")[0]
+                if type not in types:
+                     if len(types) == n_types:
+                          continue
+                     else:
+                          types.append(type)
+                if type in types:   
+                    file_path = os.path.join(path, file)
+                    signal, sr = lb.load(file_path, sr= 16000) #loading in at 16KHz sampling rate
+                    #22050
+                    signal = set_duration(signal, max = 16384)
+                    audio.append(signal)
             print(f"Loaded audio from {folder}")
     else:
         for file in os.listdir(data_path):
@@ -63,12 +71,14 @@ def load_raw_audio(data_path, n_train_data, model_path, folders = False):
 
     audio = np.array(audio)
     print(f"obtained {len(audio)} samples")
+    print(f"got audio for {types}")
+    random.shuffle(audio)
     audio = audio[:n_train_data]
     print(f"reduced to {n_train_data} training samlples")
 
     audio = z_score_normalise(audio, model_path)
     print("normalised")
-    random.shuffle(audio)
+
     
     audio = np.expand_dims(audio, axis=-1)
     return audio

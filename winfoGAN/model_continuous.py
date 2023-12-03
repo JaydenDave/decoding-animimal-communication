@@ -263,7 +263,6 @@ class GAN(models.Model):
         #metric.update_state(true, pred)
         self.d_acc_gen_metric.update_state(real_true_labels, real_predictions)
         self.d_acc_real_metric.update_state(gen_true_labels, generated_predictions)
-
         self.d_loss_metric.update_state(d_loss)
         self.d_wass_loss_metric.update_state(d_wass_loss)
         self.d_gp_metric.update_state(d_gp)
