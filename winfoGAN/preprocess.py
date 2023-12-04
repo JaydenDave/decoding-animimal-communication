@@ -57,7 +57,7 @@ def load_raw_audio(data_path, n_train_data, model_path, n_types,folders = False)
     else:
         for file in os.listdir(data_path):
                 type = file.split("_")[0]
-                print(type)
+                #print(type)
                 if type not in types:
                      if len(types) == n_types:
                           continue
