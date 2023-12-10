@@ -151,6 +151,10 @@ class GAN(models.Model):
         self.q_loss_metric = metrics.Mean(name="q_loss")
         self.d_acc_real_metric = metrics.Accuracy(name = "d_acc_real")
         self.d_acc_gen_metric = metrics.Accuracy(name = "d_acc_gen")
+        self.d_optimizer.build(self.discriminator.trainable_variables)
+        self.g_optimizer.build(self.generator.trainable_variables)
+        self.q_optimizer.build(self.generator.trainable_variables+ self.auxiliary.trainable_variables)
+        
     @property
     def metrics(self):
         return [
