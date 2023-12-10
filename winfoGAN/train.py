@@ -22,20 +22,20 @@ DIM = 64
 CHANNELS = 1 #keeping as 1? what for mono or stereo?
 PHASE_PARAM = 2
 LATENT_DIM = 100
-DISCRIMINATOR_STEPS = 3 #from 5
+DISCRIMINATOR_STEPS = 5
 GP_WEIGHT = 10
-LEARNING_RATE = 1e-5 #from 1e-4
+LEARNING_RATE = 1e-4 
 ADAM_BETA_1 = 0.5
 ADAM_BETA_2 = 0.9
 BATCH_SIZE = 64
-N_TRAIN =6400 #from 640
-EPOCHS = 6000
+N_TRAIN =1280 #from 640
+EPOCHS = 4000
 CHECKPOINT_FREQ = 1000
-D_OPTIMIZER = optimizers.RMSprop(learning_rate = LEARNING_RATE)
-G_OPTIMIZER = optimizers.RMSprop(learning_rate = LEARNING_RATE)
+D_OPTIMIZER = optimizers.Adam(learning_rate=LEARNING_RATE, beta_1 = ADAM_BETA_1, beta_2 = ADAM_BETA_2)
+G_OPTIMIZER = optimizers.Adam(learning_rate=LEARNING_RATE, beta_1 = ADAM_BETA_1, beta_2 = ADAM_BETA_2)
 Q_OPTIMIZER = optimizers.RMSprop(learning_rate = LEARNING_RATE)
 N_CATEGORIES = 5 #from 10
-N_CONTINUOUS = 2
+N_CONTINUOUS = 0
 
 if tf.config.list_physical_devices('GPU'):
   print("TensorFlow **IS** using the GPU")
@@ -77,9 +77,9 @@ wavegan = GAN(
 #)
 
 wavegan.compile(
-    d_optimizer = optimizers.RMSprop(learning_rate = LEARNING_RATE),
-    g_optimizer = optimizers.RMSprop(learning_rate = LEARNING_RATE),
-    q_optimizer= optimizers.RMSprop(learning_rate = LEARNING_RATE)
+    d_optimizer = D_OPTIMIZER,
+    g_optimizer = G_OPTIMIZER,
+    q_optimizer= Q_OPTIMIZER,
 )
 
 time = datetime.datetime.now().strftime("%d%m.%H%M")
