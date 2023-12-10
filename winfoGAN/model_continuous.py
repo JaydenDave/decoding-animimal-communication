@@ -210,7 +210,7 @@ class GAN(models.Model):
         #fiw codes
         c = tf.random.normal(shape=(batch_size, self.n_categories))
         #thresholding values to 0 and 1
-        c = tf.cast(c < 0.5, dtype=tf.int32)
+        c = tf.cast(c < 0, dtype=tf.float32)
 
 
 
@@ -264,7 +264,6 @@ class GAN(models.Model):
 
         # discriminator accuracy metric
         real_predictions = self.discriminator(real_data, training = True)
-
         #set predictions to -1 is <0 or 1 if >=0
         real_predictions = tf.where(tf.greater_equal(real_predictions, 0), tf.ones_like(real_predictions), tf.ones_like(real_predictions) * -1)
         generated_predictions = tf.where(tf.greater_equal(generated_predictions, 0), tf.ones_like(generated_predictions), tf.ones_like(generated_predictions) * -1)
