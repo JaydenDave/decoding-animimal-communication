@@ -17,6 +17,18 @@ from model_continuous import GAN
 from preprocess import load_raw_audio
 import datetime
 import json
+import argparse
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument(
+        'num_epochs',
+        type=int,
+        default=5000,
+        help='Epochs'
+    )
+
+args = parser.parse_args()
 
 DIM = 64
 CHANNELS = 1 #keeping as 1? what for mono or stereo?
@@ -29,7 +41,7 @@ ADAM_BETA_1 = 0.5
 ADAM_BETA_2 = 0.9
 BATCH_SIZE = 64
 N_TRAIN =1280 #from 640
-EPOCHS = 4000
+EPOCHS = args.num_epochs
 CHECKPOINT_FREQ = 1000
 D_OPTIMIZER = optimizers.Adam(learning_rate=LEARNING_RATE, beta_1 = ADAM_BETA_1, beta_2 = ADAM_BETA_2)
 G_OPTIMIZER = optimizers.Adam(learning_rate=LEARNING_RATE, beta_1 = ADAM_BETA_1, beta_2 = ADAM_BETA_2)
@@ -143,7 +155,8 @@ wavegan.fit(
 #wavegan.save("./models/vae")
 
 wavegan.generator.save(f"{model_path}/generator")
-#wavegan.discriminator.save(f"{model_path}/discriminator")
+wavegan.discriminator.save(f"{model_path}/discriminator")
+wavegan.auxiliary.save(f"{model_path}/auxiliary")
 print("models saved")
 print("complete")
 
