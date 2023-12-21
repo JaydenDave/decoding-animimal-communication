@@ -40,7 +40,7 @@ LEARNING_RATE = 1e-4
 ADAM_BETA_1 = 0.5
 ADAM_BETA_2 = 0.9
 BATCH_SIZE = 64
-N_TRAIN =2000 #from 640
+N_TRAIN =1280*2 #from 640
 EPOCHS = args.num_epochs
 CHECKPOINT_FREQ = 1000
 D_OPTIMIZER = optimizers.Adam(learning_rate=LEARNING_RATE, beta_1 = ADAM_BETA_1, beta_2 = ADAM_BETA_2)
