@@ -95,7 +95,7 @@ def discriminator():
     discriminator = models.Model(dis_input, dis_output, name="discriminator")
     return discriminator
 
-def auxiliary(num_codes):   
+def auxiliary(num_cat, num_cont):   
     dim_mul = 16
     aux_input = layers.Input(shape = (dim_mul*dim_mul*DIM, CHANNELS,), name = "aux_input")
     x = layers.Conv1D(filters = DIM, strides = 4, kernel_size = 25, padding = "same", use_bias = True)(aux_input)
@@ -119,22 +119,23 @@ def auxiliary(num_codes):
     #x = layers.Reshape((4*4*dim_mul*DIM))(x)
     x = layers.Flatten()(x)
     
-    output = layers.Dense(units = num_codes, use_bias = True)(x)
+    output = layers.Dense(units = num_cat+num_cont, use_bias = True)(x)
     #dont need softmax activation because the softmax cross entropy on the loss function has it built in
 
     auxiliary = models.Model(aux_input, output, name="auxiliary")
     return auxiliary
 
 class GAN(models.Model):
-    def __init__(self, latent_dim, discriminator_steps, gp_weight, n_categories):
+    def __init__(self, latent_dim, discriminator_steps, gp_weight, n_categories, n_cont):
         super(GAN, self).__init__()
         self.discriminator = discriminator()
         self.generator = generator()
-        self.auxiliary = auxiliary(n_categories)
+        self.auxiliary = auxiliary(n_categories, n_cont)
         self.latent_dim = latent_dim
         self.discriminator_steps = discriminator_steps
         self.gp_weight = gp_weight
         self.n_categories = n_categories
+        self.n_cont = n_cont
     
     
     def compile(self, d_optimizer, g_optimizer, q_optimizer):
@@ -148,6 +149,12 @@ class GAN(models.Model):
         self.d_loss_metric = metrics.Mean(name="d_loss")
         self.g_loss_metric = metrics.Mean(name="g_loss")
         self.q_loss_metric = metrics.Mean(name="q_loss")
+        self.d_acc_real_metric = metrics.Accuracy(name = "d_acc_real")
+        self.d_acc_gen_metric = metrics.Accuracy(name = "d_acc_gen")
+        self.d_optimizer.build(self.discriminator.trainable_variables)
+        self.g_optimizer.build(self.generator.trainable_variables)
+        self.q_optimizer.build(self.generator.trainable_variables+ self.auxiliary.trainable_variables)
+        
     @property
     def metrics(self):
         return [
@@ -156,6 +163,8 @@ class GAN(models.Model):
             self.d_gp_metric,
             self.d_wass_loss_metric,
             self.q_loss_metric,
+            self.d_acc_real_metric,
+            self.d_acc_gen_metric,
             ]
     
     def gradient_penalty(self, batch_size, real_data, fake_data):
@@ -176,36 +185,43 @@ class GAN(models.Model):
     
     def q_cost_tf(self, input, q):
         #q is Q(G(z,c)) output from q network
-        z_dim = self.latent_dim - self.n_categories
-        input_cat = input[:, z_dim:]
-        #q_cat = q[:, z_dim:]
-        lcat = tf.nn.softmax_cross_entropy_with_logits(labels=input_cat, logits=q)
-        return tf.reduce_mean(lcat)
+        z_dim = self.latent_dim - self.n_categories - self.n_cont
+        input_cat = input[:, z_dim+self.n_cont:]
+        input_con = input[:, z_dim: z_dim+self.n_cont:]
+        
+        q_cat = q[:, self.n_cont:]
+        q_con = q[:, :self.n_cont]
+        lcat = tf.nn.softmax_cross_entropy_with_logits(labels=input_cat, logits=q_cat)
+        lcon =  0.5 * tf.square(input_con - q_con)
+        return tf.reduce_mean(lcat) + tf.reduce_mean(lcon)
+    
     
     def create_inputs(self, batch_size):
         #incompressible noise vector
         z_dim = self.latent_dim - self.n_categories
+        #continuous codes are the same as z
         z = tf.random.normal(shape=(batch_size, z_dim))
 
         #categorical latent codes
         #list of integers range 0 -> n_categories (batch size number of them)
-        idxs = np.random.randint(self.n_categories, size=batch_size)
+        #idxs = np.random.randint(self.n_categories, size=batch_size)
         #create array of zeros with batch size rows and n_categories columns
-        c = np.zeros((batch_size, self.n_categories))
+        #cat = np.zeros((batch_size, self.n_categories))
         #set elements of c to 1. the np.arange bit is looking at each row, and then sets row[idx] to 1 (with the random index) 
-        c[np.arange(batch_size), idxs] = 1
+        #cat[np.arange(batch_size), idxs] = 1
+        #c = tf.convert_to_tensor(cat, dtype=tf.float32)
+        
+        #fiw codes
+        c = tf.random.normal(shape=(batch_size, self.n_categories))
+        #thresholding values to 0 and 1
+        c = tf.cast(c < 0, dtype=tf.float32)
 
-        #inputs = np.zeros([batch_size, latent_dim])
-        #inputs[:, : z_dim] = z
-        #inputs[:,z_dim:] = c
 
-        # Convert `c` to a TensorFlow tensor
-        c = tf.convert_to_tensor(c, dtype=tf.float32)
 
-        # Concatenate `z` and `c`
         inputs = tf.concat([z, c], axis=1)
         return inputs
     
+        
     def train_step(self, real_data):
         batch_size = tf.shape(real_data)[0]
 
@@ -227,28 +243,47 @@ class GAN(models.Model):
         
         #update generator
         inputs = self.create_inputs(BATCH_SIZE)
+        z_dim = self.latent_dim - self.n_categories
+        c = inputs[:, z_dim:]
         
         with tf.GradientTape(persistent= True) as tape:
             generated_data = self.generator(inputs, training = True)
             generated_predictions = self.discriminator(generated_data, training = True)
             code_predictions = self.auxiliary(generated_data, training = True)
             g_loss = -tf.reduce_mean(generated_predictions)
-            q_loss = self.q_cost_tf(inputs, code_predictions)
+            #q_loss = self.q_cost_tf(inputs, code_predictions)
+            q_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(labels = c, logits = code_predictions))
         
 
-        #update generator based on generator loss
         gen_gradient = tape.gradient(g_loss, self.generator.trainable_variables)
-        self.g_optimizer.apply_gradients(zip(gen_gradient, self.generator.trainable_variables))
+        
         
         #update g and q together with q loss
         q_gen_gradient, q_aux_gradient = tape.gradient(q_loss, [self.generator.trainable_variables,self.auxiliary.trainable_variables])
-        self.g_optimizer.apply_gradients(zip(q_gen_gradient, self.generator.trainable_variables))
+        self.q_optimizer.apply_gradients(zip(q_gen_gradient, self.generator.trainable_variables))
         self.q_optimizer.apply_gradients(zip(q_aux_gradient, self.auxiliary.trainable_variables))
-            
+
+        #update generator based off g loss
+        self.g_optimizer.apply_gradients(zip(gen_gradient, self.generator.trainable_variables))
+
+        # discriminator accuracy metric
+        real_predictions = self.discriminator(real_data, training = True)
+        #set predictions to -1 is <0 or 1 if >=0
+        real_predictions = tf.where(tf.greater_equal(real_predictions, 0), tf.ones_like(real_predictions), tf.ones_like(real_predictions) * -1)
+        generated_predictions = tf.where(tf.greater_equal(generated_predictions, 0), tf.ones_like(generated_predictions), tf.ones_like(generated_predictions) * -1)
+
+        #creating tensors for true labels
+        real_true_labels = tf.ones_like(real_predictions)
+        gen_true_labels = tf.ones_like(generated_predictions)
+
+        #metric.update_state(true, pred)
+        self.d_acc_gen_metric.update_state(real_true_labels, real_predictions)
+        self.d_acc_real_metric.update_state(gen_true_labels, generated_predictions)
         self.d_loss_metric.update_state(d_loss)
         self.d_wass_loss_metric.update_state(d_wass_loss)
         self.d_gp_metric.update_state(d_gp)
         self.g_loss_metric.update_state(g_loss)
         self.q_loss_metric.update_state(q_loss)
+        
         
         return {m.name: m.result() for m in self.metrics}

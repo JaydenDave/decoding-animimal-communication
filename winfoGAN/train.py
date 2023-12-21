@@ -13,7 +13,7 @@ from tensorflow.keras import (
 )
 import librosa as lb
 #from model import GAN
-from model_continuous import GAN
+from winfoGAN.model import GAN
 from preprocess import load_raw_audio
 import datetime
 import json
