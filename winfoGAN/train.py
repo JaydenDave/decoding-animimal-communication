@@ -47,7 +47,8 @@ D_OPTIMIZER = optimizers.Adam(learning_rate=LEARNING_RATE, beta_1 = ADAM_BETA_1,
 G_OPTIMIZER = optimizers.Adam(learning_rate=LEARNING_RATE, beta_1 = ADAM_BETA_1, beta_2 = ADAM_BETA_2)
 Q_OPTIMIZER = optimizers.RMSprop(learning_rate = LEARNING_RATE)
 N_CATEGORIES = 5 #from 10
-N_CONTINUOUS = 0
+SLICE_LEN = 16384
+
 
 if tf.config.list_physical_devices('GPU'):
   print("TensorFlow **IS** using the GPU")
@@ -63,7 +64,7 @@ specs={"Discriminator Steps": DISCRIMINATOR_STEPS,
        "GP Weight": GP_WEIGHT,
        "Latent Dim": LATENT_DIM,
        "N Categories": N_CATEGORIES,
-       "N Continuous": N_CONTINUOUS,
+       "Slice Length": SLICE_LEN,
        "Batch Size": BATCH_SIZE,
        "Training Size": N_TRAIN,
        "Epochs": EPOCHS,
@@ -79,7 +80,7 @@ wavegan = GAN(
     discriminator_steps= DISCRIMINATOR_STEPS,
     gp_weight= GP_WEIGHT,
     n_categories= N_CATEGORIES,
-    n_cont= N_CONTINUOUS
+    slice_len=SLICE_LEN,
 )
 
 #wavegan.compile(

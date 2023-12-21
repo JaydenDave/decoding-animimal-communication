@@ -25,8 +25,8 @@ BATCH_SIZE = 64
 EPOCHS = 100
 
 
-def generator():
-    dim_mul = 16
+def generator(slice_len):
+    dim_mul = 16 if slice_len == 16384 else 32
     gen_input = layers.Input(shape=(100,)) # input vector of legnth 100 (z sampled from uniform normal dist)
     x = layers.Dense(units = 4*4*dim_mul*DIM, use_bias = True)(gen_input)
     x = layers.Reshape((16,dim_mul*DIM))(x)
@@ -44,11 +44,22 @@ def generator():
     x = layers.Conv1DTranspose(filters = dim_mul*DIM, strides = 4, padding= "same", kernel_size = 25, use_bias = True)(x)
     x = layers.ReLU()(x)
     dim_mul //=2
-
+   
     x = layers.Conv1DTranspose(filters = dim_mul*DIM, strides = 4, padding= "same", kernel_size = 25, use_bias = True)(x)
     x = layers.ReLU()(x)
 
-    gen_output = layers.Conv1DTranspose(filters = CHANNELS, strides = 4, padding= "same", kernel_size = 25, use_bias = True, activation = 'tanh')(x)
+    if slice_len ==16384:
+        gen_output = layers.Conv1DTranspose(filters = CHANNELS, strides = 4, padding= "same", kernel_size = 25, use_bias = True, activation = 'tanh')(x)
+    
+    elif slice_len ==32768:
+        x = layers.Conv1DTranspose(filters = DIM, strides = 4, padding= "same", kernel_size = 25, use_bias = True)(x)
+        x = layers.ReLU()(x)
+        gen_output = layers.Conv1DTranspose(filters = CHANNELS, strides = 2, padding= "same", kernel_size = 25, use_bias = True, activation = 'tanh')(x)
+    
+    elif slice_len ==65536:
+        x = layers.Conv1DTranspose(filters = DIM, strides = 4, padding= "same", kernel_size = 25, use_bias = True)(x)
+        x = layers.ReLU()(x)
+        gen_output = layers.Conv1DTranspose(filters = CHANNELS, strides = 4, padding= "same", kernel_size = 25, use_bias = True, activation = 'tanh')(x)
 
     generator = models.Model(gen_input, gen_output, name= "generator")
     return generator
@@ -67,9 +78,9 @@ class PhaseShuffle(layers.Layer):
         x.set_shape([b, x_len, nch])
         return x
 
-def discriminator():   
-    dim_mul = 16
-    dis_input = layers.Input(shape = (dim_mul*dim_mul*DIM, CHANNELS,), name = "discriminator_input")
+def discriminator(slice_len):
+    input_size = slice_len
+    dis_input = layers.Input(shape = (input_size, CHANNELS,), name = "discriminator_input")
     x = layers.Conv1D(filters = DIM, strides = 4, kernel_size = 25, padding = "same", use_bias = True)(dis_input)
     x = layers.LeakyReLU(alpha = 0.2)(x)
     x = PhaseShuffle()(x)
@@ -86,56 +97,70 @@ def discriminator():
     x = layers.LeakyReLU(alpha = 0.2)(x)
     x = PhaseShuffle()(x)
 
-    x = layers.Conv1D(filters = dim_mul*DIM, strides = 4, kernel_size = 25, padding = "same", use_bias = True)(x)
+    x = layers.Conv1D(filters = 16*DIM, strides = 4, kernel_size = 25, padding = "same", use_bias = True)(x)
     x = layers.LeakyReLU(alpha = 0.2)(x)
-    #x = layers.Reshape((4*4*dim_mul*DIM))(x)
+    
+    if slice_len ==32768:
+        x = layers.Conv1D(filters = 32*DIM, strides = 2, kernel_size = 25, padding = "same", use_bias = True)(x) 
+        x = layers.LeakyReLU(alpha = 0.2)(x)
+    
+    elif slice_len ==65536:
+        x = layers.Conv1D(filters = 32*DIM, strides = 4, kernel_size = 25, padding = "same", use_bias = True)(x) 
+        x = layers.LeakyReLU(alpha = 0.2)(x)
     x = layers.Flatten()(x)
 
     dis_output = layers.Dense(units = 1, use_bias = True)(x)
     discriminator = models.Model(dis_input, dis_output, name="discriminator")
     return discriminator
 
-def auxiliary(num_cat, num_cont):   
-    dim_mul = 16
-    aux_input = layers.Input(shape = (dim_mul*dim_mul*DIM, CHANNELS,), name = "aux_input")
+def auxiliary(num_cat, slice_len):   
+    input_size = slice_len
+    aux_input = layers.Input(shape = (input_size, CHANNELS,), name = "aux_input")
     x = layers.Conv1D(filters = DIM, strides = 4, kernel_size = 25, padding = "same", use_bias = True)(aux_input)
     x = layers.LeakyReLU(alpha = 0.2)(x)
-    x = PhaseShuffle()(x)
+    #x = PhaseShuffle()(x)
 
     x = layers.Conv1D(filters = 2*DIM, strides = 4, kernel_size = 25, padding = "same", use_bias = True)(x)
     x = layers.LeakyReLU(alpha = 0.2)(x)
-    x = PhaseShuffle()(x)
+    #x = PhaseShuffle()(x)
 
     x = layers.Conv1D(filters = 4*DIM, strides = 4, kernel_size = 25, padding = "same", use_bias = True)(x)
     x = layers.LeakyReLU(alpha = 0.2)(x)
-    x = PhaseShuffle()(x)
+    #x = PhaseShuffle()(x)
 
     x = layers.Conv1D(filters = 8*DIM, strides = 4, kernel_size = 25, padding = "same", use_bias = True)(x)
     x = layers.LeakyReLU(alpha = 0.2)(x)
-    x = PhaseShuffle()(x)
+    #x = PhaseShuffle()(x)
 
-    x = layers.Conv1D(filters = dim_mul*DIM, strides = 4, kernel_size = 25, padding = "same", use_bias = True)(x)
+    x = layers.Conv1D(filters = 16*DIM, strides = 4, kernel_size = 25, padding = "same", use_bias = True)(x)
     x = layers.LeakyReLU(alpha = 0.2)(x)
-    #x = layers.Reshape((4*4*dim_mul*DIM))(x)
+    
+    if slice_len ==32768:
+        x = layers.Conv1D(filters = 32*DIM, strides = 2, kernel_size = 25, padding = "same", use_bias = True)(x) 
+        x = layers.LeakyReLU(alpha = 0.2)(x)
+    
+    elif slice_len ==65536:
+        x = layers.Conv1D(filters = 32*DIM, strides = 4, kernel_size = 25, padding = "same", use_bias = True)(x) 
+        x = layers.LeakyReLU(alpha = 0.2)(x)
     x = layers.Flatten()(x)
     
-    output = layers.Dense(units = num_cat+num_cont, use_bias = True)(x)
+    output = layers.Dense(units = num_cat, use_bias = True)(x)
     #dont need softmax activation because the softmax cross entropy on the loss function has it built in
 
     auxiliary = models.Model(aux_input, output, name="auxiliary")
     return auxiliary
 
 class GAN(models.Model):
-    def __init__(self, latent_dim, discriminator_steps, gp_weight, n_categories, n_cont):
+    def __init__(self, latent_dim, discriminator_steps, gp_weight, n_categories,slice_len):
         super(GAN, self).__init__()
-        self.discriminator = discriminator()
-        self.generator = generator()
-        self.auxiliary = auxiliary(n_categories, n_cont)
+        self.discriminator = discriminator(slice_len)
+        self.generator = generator(slice_len)
+        self.auxiliary = auxiliary(n_categories, slice_len)
         self.latent_dim = latent_dim
         self.discriminator_steps = discriminator_steps
         self.gp_weight = gp_weight
         self.n_categories = n_categories
-        self.n_cont = n_cont
+
     
     
     def compile(self, d_optimizer, g_optimizer, q_optimizer):
