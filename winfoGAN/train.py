@@ -87,7 +87,7 @@ model_path = f"/mt/home/jdave/onedrive/models_{time}"
 os.mkdir(model_path)
 
 #path = "/mt/home/jdave/datasets/sc09/sc09/train"
-path = "/mt/home/jdave/onedrive/zebra_finch"
+path = "/mt/home/jdave/onedrive/zebra_finch/"
 print(f"Loading data from {path}")
 #train_data = load_raw_audio(path, n_train_data= N_TRAIN, model_path= model_path, n_types= N_CATEGORIES)
 train_data, N_TRAIN = load_zebra_finch(path, slice_len=SLICE_LEN, model_path= model_path, n_types = N_CATEGORIES)
