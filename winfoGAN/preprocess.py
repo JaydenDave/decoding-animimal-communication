@@ -3,6 +3,7 @@ import os
 import librosa as lb
 import pickle
 import random
+import pandas as pd
 
 
 def set_duration(signal, max):
@@ -89,5 +90,57 @@ def load_raw_audio(data_path, n_train_data, model_path, n_types,folders = False)
     audio = np.expand_dims(audio, axis=-1)
     return audio
 
+def load_zebra_finch(data_dir,slice_len, model_path, n_types, n_train_data=None, batch_size= 64):
+    recs = []
+    #file_names= []
+    call_types = []
+    #names = []
 
+
+    for file_name in os.listdir(data_dir):
+        recording, sr = lb.load(f'{data_dir}{file_name}', sr = None)
+        #print(file)
+        try:
+            name, file= file_name.split("_")
+            date, call_type, rendition= file.split("-")
+            call_type = call_type[:2]
+            #print(name, date, call_type)
+            recs.append(recording)
+            #names.append(name)
+            #file_names.append(file_name)
+            call_types.append(call_type)
+        except:
+            print(f"skipped {file}")
+            continue
+    df = pd.DataFrame()
+    df["call_type"]= call_types
+    df["rec"] = recs
+    durations = [x.shape[0] / sr for x in recs]
+    df["duration"] = durations
+    print(f"obtained {len(os.listdir(data_dir))} samples")
+    dur = slice_len/sr
+    df= df[df["duration"] <= dur]
+
+    call_type_counts = df["call_type"].value_counts()
+    top_n = call_type_counts.head(n_types).index.tolist()
+    print(f"top {n_types} call types for duration <= {dur}: {top_n}")
+    df_top = df[df["call_type"].isin(top_n)]
+    if not n_train_data:
+        dur = slice_len /sr
+        count = (df_top["duration"]<= dur).sum()
+        n_train_data = (count//batch_size) *batch_size
+    
+    audio = [set_duration(signal, max = slice_len) for signal in df_top["rec"]]
+    audio = np.array(audio)
+    
+    random.shuffle(audio)
+    audio = audio[:n_train_data]
+    print(f"reduced to {n_train_data} training samlples")
+
+    audio = z_score_normalise(audio, model_path)
+    print("normalised")
+
+    
+    audio = np.expand_dims(audio, axis=-1)
+    return audio, n_train_data
 

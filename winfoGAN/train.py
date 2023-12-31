@@ -14,7 +14,7 @@ from tensorflow.keras import (
 import librosa as lb
 #from model import GAN
 from model import GAN
-from preprocess import load_raw_audio
+from preprocess import load_raw_audio, load_zebra_finch
 import datetime
 import json
 import argparse
@@ -40,13 +40,13 @@ LEARNING_RATE = 1e-4
 ADAM_BETA_1 = 0.5
 ADAM_BETA_2 = 0.9
 BATCH_SIZE = 64
-N_TRAIN =1280*2 #from 640
+#N_TRAIN =1280*2 #from 640
 EPOCHS = args.num_epochs
 CHECKPOINT_FREQ = 1000
 D_OPTIMIZER = optimizers.Adam(learning_rate=LEARNING_RATE, beta_1 = ADAM_BETA_1, beta_2 = ADAM_BETA_2)
 G_OPTIMIZER = optimizers.Adam(learning_rate=LEARNING_RATE, beta_1 = ADAM_BETA_1, beta_2 = ADAM_BETA_2)
 Q_OPTIMIZER = optimizers.RMSprop(learning_rate = LEARNING_RATE)
-N_CATEGORIES = 5 #from 10
+N_CATEGORIES = 8
 SLICE_LEN = 16384
 
 
@@ -60,21 +60,7 @@ else:
 def optimizer_type(optimizer):
     return (str(optimizer).split(".")[3]).split(" ")[0]
 
-specs={"Discriminator Steps": DISCRIMINATOR_STEPS,
-       "GP Weight": GP_WEIGHT,
-       "Latent Dim": LATENT_DIM,
-       "N Categories": N_CATEGORIES,
-       "Slice Length": SLICE_LEN,
-       "Batch Size": BATCH_SIZE,
-       "Training Size": N_TRAIN,
-       "Epochs": EPOCHS,
-       "D Optimizer": optimizer_type(D_OPTIMIZER),
-       "G Optimizer": optimizer_type(G_OPTIMIZER),
-       "Q Optimizer": optimizer_type(Q_OPTIMIZER),
-       "Learning Rate": LEARNING_RATE,
-       "Phase Parameter": PHASE_PARAM,
 
-       }
 wavegan = GAN(
     latent_dim = LATENT_DIM,
     discriminator_steps= DISCRIMINATOR_STEPS,
@@ -95,9 +81,34 @@ wavegan.compile(
     q_optimizer= Q_OPTIMIZER,
 )
 
+
 time = datetime.datetime.now().strftime("%d%m.%H%M")
 model_path = f"/mt/home/jdave/onedrive/models_{time}"
 os.mkdir(model_path)
+
+#path = "/mt/home/jdave/datasets/sc09/sc09/train"
+path = "/mt/home/jdave/onedrive/zebra_finch"
+print(f"Loading data from {path}")
+#train_data = load_raw_audio(path, n_train_data= N_TRAIN, model_path= model_path, n_types= N_CATEGORIES)
+train_data, N_TRAIN = load_zebra_finch(path, slice_len=SLICE_LEN, model_path= model_path, n_types = N_CATEGORIES)
+
+specs={"Discriminator Steps": DISCRIMINATOR_STEPS,
+       "GP Weight": GP_WEIGHT,
+       "Latent Dim": LATENT_DIM,
+       "N Categories": N_CATEGORIES,
+       "Slice Length": SLICE_LEN,
+       "Batch Size": BATCH_SIZE,
+       "Training Size": N_TRAIN,
+       "Epochs": EPOCHS,
+       "D Optimizer": optimizer_type(D_OPTIMIZER),
+       "G Optimizer": optimizer_type(G_OPTIMIZER),
+       "Q Optimizer": optimizer_type(Q_OPTIMIZER),
+       "Learning Rate": LEARNING_RATE,
+       "Phase Parameter": PHASE_PARAM,
+
+       }
+
+
 
 spec_path = f"{model_path}/model_specifications.json"
 with open(spec_path, 'w') as f:
@@ -129,15 +140,6 @@ model_checkpoint_callback = callbacks.ModelCheckpoint(
 
 
 tensorboard_callback = callbacks.TensorBoard(log_dir=f"{model_path}/logs")
-
-
-
-#path = r"C:\Users\Jayde\Desktop\Datasets\sc09\sc09"
-
-#path = "/home/jayden/sc09/train"
-path = "/mt/home/jdave/datasets/sc09/sc09/train"
-print(f"Loading data from {path}")
-train_data = load_raw_audio(path, n_train_data= N_TRAIN, model_path= model_path, n_types= N_CATEGORIES)
 
 
 wavegan.fit(
