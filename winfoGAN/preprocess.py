@@ -17,6 +17,19 @@ def set_duration(signal, max):
         signal = signal[:max]
     return signal
 
+def centre_and_pad(signal, slice_len= 16384):
+    nsamples = len(signal)
+    l_pad = (slice_len - nsamples)//2
+    r_pad = slice_len - (nsamples + l_pad)
+    if len(signal) < slice_len:
+        padded_array = np.pad(signal,
+                              (l_pad,r_pad),
+                              mode = "constant")
+        return padded_array
+    else:
+        signal = signal[:slice_len]
+    return signal
+
 def denormalise(samples, normaliser_file_path):
     with open(normaliser_file_path, 'rb') as f:
         norm_vals = pickle.load(f)
@@ -130,7 +143,7 @@ def load_zebra_finch(data_dir,slice_len, model_path, n_types, n_train_data=None,
         count = (df_top["duration"]<= dur).sum()
         n_train_data = (count//batch_size) *batch_size
     
-    audio = [set_duration(signal, max = slice_len) for signal in df_top["rec"]]
+    audio = [centre_and_pad(signal, slice_len) for signal in df_top["rec"]]
     audio = np.array(audio)
     
     random.shuffle(audio)

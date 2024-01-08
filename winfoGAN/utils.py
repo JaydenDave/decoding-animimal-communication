@@ -53,7 +53,7 @@ def create_plots(signal, sr, window_length = 1024, save_dir = None, lw=0.6, fmax
     #axs[0].librosa.display.waveshow(code_1[1], sr=sr)
     axs[0].set_xlabel('Time (s)', fontsize= font_size)
     axs[0].set_ylabel('Amplitude', fontsize = font_size)
-    axs[0].set_xlim(0,1)
+    axs[0].set_xlim(0,max(times))
     #axs[0].set_title('Time Domain Representation')
     #axs[0].xticks(fontsize = font_size)
     #axs[0].yticks(fontsize= font_size)

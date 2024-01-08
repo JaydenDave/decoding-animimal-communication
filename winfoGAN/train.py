@@ -46,7 +46,7 @@ CHECKPOINT_FREQ = 1000
 D_OPTIMIZER = optimizers.Adam(learning_rate=LEARNING_RATE, beta_1 = ADAM_BETA_1, beta_2 = ADAM_BETA_2)
 G_OPTIMIZER = optimizers.Adam(learning_rate=LEARNING_RATE, beta_1 = ADAM_BETA_1, beta_2 = ADAM_BETA_2)
 Q_OPTIMIZER = optimizers.RMSprop(learning_rate = LEARNING_RATE)
-N_CATEGORIES = 8
+N_CATEGORIES = 5
 SLICE_LEN = 16384
 
 
