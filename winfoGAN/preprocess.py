@@ -166,5 +166,5 @@ def bandpass_filter(data, low, high, sr, order=5):
     low = low/nyquist
     high = high/nyquist
     b, a = butter(order, [low, high], btype='band')
-    filtered = lfilter(b, a, data)
+    filtered = np.array(lfilter(b, a, data))
     return filtered
