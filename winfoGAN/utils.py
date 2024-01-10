@@ -40,7 +40,7 @@ def create_inputs(specs, num, bit_value= 1, baseline_dose = 0, random = False):
 
     return inputs
 
-def create_plots(signal, sr, window_length = 1024, save_dir = None, lw=0.6, fmax=6e3, font_size = 13):
+def create_plots(signal, sr, window_length = 1024, save_dir = None, lw=0.6, fmax=6e3, font_size = 13, amp_envelope= True, plot_rms = True):
     fmax = sr/2 #nyquist frequency 
     N = len(signal)
     delta_t = 1 / sr
@@ -53,6 +53,10 @@ def create_plots(signal, sr, window_length = 1024, save_dir = None, lw=0.6, fmax
     #axs[0].librosa.display.waveshow(code_1[1], sr=sr)
     axs[0].set_xlabel('Time (s)', fontsize= font_size)
     axs[0].set_ylabel('Amplitude', fontsize = font_size)
+    t_ae, ae = amplitude_envelope(signal,frame_size = 128, hop_length= 64, sr= sr)
+    t_rms, rms = RMS_energy(signal,frame_size = 128, hop_length= 64, sr= sr)
+    axs[0].plot(t_ae,ae, color = "r") if amp_envelope else None
+    axs[0].plot(t_rms,rms, color = "r") if plot_rms else None
     axs[0].set_xlim(0,max(times))
     #axs[0].set_title('Time Domain Representation')
     #axs[0].xticks(fontsize = font_size)
@@ -156,3 +160,18 @@ def avg_fundamental_freq(inputs, sr):
     avg= np.average(freqs)
     std = np.std(freqs)
     return avg,std
+
+
+
+def amplitude_envelope(signal, frame_size, hop_length, sr):
+    #get max amplitude value for each frame,sliding with hop_length
+    ae = np.array([max(signal[i:i+frame_size]) for i in range(0, signal.size, hop_length)])
+    frames = range(0,ae.size)
+    t = lb.frames_to_time(frames, hop_length= hop_length, sr = sr)
+    return t,ae
+
+def RMS_energy(signal, frame_size, hop_length, sr):
+    rms = np.array([np.sqrt(sum(k**2 for k in signal[i:i+frame_size]/frame_size)) for i in range(0, signal.size, hop_length)])
+    frames = range(0,rms.size)
+    t = lb.frames_to_time(frames, hop_length= hop_length, sr = sr)
+    return t,rms
