@@ -143,12 +143,14 @@ def load_zebra_finch(data_dir,slice_len, model_path, n_types, n_train_data=None,
         dur = slice_len /sr
         count = (df_top["duration"]<= dur).sum()
         n_train_data = (count//batch_size) *batch_size
+    
+    audio = [centre_and_pad(signal, slice_len) for signal in audio]
     audio = [bandpass_filter(signal,250,12000, sr) for signal in df_top["rec"]]
     audio = np.array(audio)
     audio = z_score_normalise(audio, model_path)
     #print("normalised")
 
-    audio = [centre_and_pad(signal, slice_len) for signal in audio]
+    
     audio = np.array(audio)
     
     random.shuffle(audio)
