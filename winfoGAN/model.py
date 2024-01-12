@@ -15,14 +15,7 @@ from tensorflow.keras import (
 DIM = 64
 CHANNELS = 1 #keeping as 1? what for mono or stereo?
 PHASE_PARAM = 2
-LATENT_DIM = 100
-DISCRIMINATOR_STEPS = 5
-GP_WEIGHT = 10
-LEARNING_RATE = 1e-4
-ADAM_BETA_1 = 0.5
-ADAM_BETA_2 = 0.9
-BATCH_SIZE = 64
-EPOCHS = 100
+
 
 
 def generator(slice_len):
@@ -161,6 +154,7 @@ class GAN(models.Model):
         self.gp_weight = gp_weight
         self.n_categories = n_categories
 
+
     
     
     def compile(self, d_optimizer, g_optimizer, q_optimizer):
@@ -252,7 +246,7 @@ class GAN(models.Model):
 
         #update discriminator a few times
         for i in range(self.discriminator_steps):
-            inputs = self.create_inputs(BATCH_SIZE)
+            inputs = self.create_inputs(batch_size)
 
             with tf.GradientTape() as tape:
                 generated_data = self.generator(inputs, training = True)
@@ -267,7 +261,7 @@ class GAN(models.Model):
             self.d_optimizer.apply_gradients(zip(d_gradient, self.discriminator.trainable_variables))
         
         #update generator
-        inputs = self.create_inputs(BATCH_SIZE)
+        inputs = self.create_inputs(batch_size)
         z_dim = self.latent_dim - self.n_categories
         c = inputs[:, z_dim:]
         

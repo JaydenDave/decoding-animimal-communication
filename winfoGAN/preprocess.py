@@ -36,9 +36,9 @@ def denormalise(samples, normaliser_file_path):
         norm_vals = pickle.load(f)
     mean = norm_vals["mean"]
     std_dev = norm_vals["std_dev"]
-    print(f"DENORMALISING- MEAN:{mean}, STD_DEV:{std_dev}")
+    #print(f"DENORMALISING- MEAN:{mean}, STD_DEV:{std_dev}")
     samples = (samples * std_dev) + mean
-    print("DENORMALISED")
+    #print("DENORMALISED")
     return samples
 
 

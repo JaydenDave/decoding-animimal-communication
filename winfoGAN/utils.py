@@ -21,7 +21,7 @@ def create_inputs(specs, num, bit_value= 1, baseline_dose = 0, random = False):
     z_dim = latent_dim-n_cat
 
     if random:
-        print("Random c")
+        #print("Random c")
         z= tf.random.normal(shape=(num, z_dim))
         c = tf.random.normal(shape=(num, n_cat))
         #thresholding values to 0 and 1
