@@ -168,8 +168,8 @@ class GAN(models.Model):
         self.d_loss_metric = metrics.Mean(name="d_loss")
         self.g_loss_metric = metrics.Mean(name="g_loss")
         self.q_loss_metric = metrics.Mean(name="q_loss")
-        self.d_acc_real_metric = metrics.Accuracy(name = "d_acc_real")
-        self.d_acc_gen_metric = metrics.Accuracy(name = "d_acc_gen")
+        self.d_real_metric = metrics.Mean(name = "real_socre")
+        self.d_gen_metric = metrics.Mean(name = "gen_score")
         self.d_optimizer.build(self.discriminator.trainable_variables)
         self.g_optimizer.build(self.generator.trainable_variables)
         self.q_optimizer.build(self.generator.trainable_variables+ self.auxiliary.trainable_variables)
@@ -182,8 +182,8 @@ class GAN(models.Model):
             self.d_gp_metric,
             self.d_wass_loss_metric,
             self.q_loss_metric,
-            self.d_acc_real_metric,
-            self.d_acc_gen_metric,
+            self.d_real_metric,
+            self.d_gen_metric,
             ]
     
     def gradient_penalty(self, batch_size, real_data, fake_data):
@@ -296,8 +296,8 @@ class GAN(models.Model):
         gen_true_labels = tf.ones_like(generated_predictions)
 
         #metric.update_state(true, pred)
-        self.d_acc_gen_metric.update_state(real_true_labels, real_predictions)
-        self.d_acc_real_metric.update_state(gen_true_labels, generated_predictions)
+        self.d_gen_metric.update_state(-g_loss)
+        self.d_real_metric.update_state(-(g_loss +d_wass_loss))
         self.d_loss_metric.update_state(d_loss)
         self.d_wass_loss_metric.update_state(d_wass_loss)
         self.d_gp_metric.update_state(d_gp)
