@@ -34,7 +34,7 @@ DIM = 64
 CHANNELS = 1 #keeping as 1? what for mono or stereo?
 PHASE_PARAM = 2
 LATENT_DIM = 100
-DISCRIMINATOR_STEPS = 5
+DISCRIMINATOR_STEPS = 7
 GP_WEIGHT = 10
 LEARNING_RATE = 1e-4
 ADAM_BETA_1 = 0.5
@@ -42,7 +42,7 @@ ADAM_BETA_2 = 0.9
 BATCH_SIZE = 128
 #N_TRAIN =1280*2 #from 640
 EPOCHS = args.num_epochs
-CHECKPOINT_FREQ = 100
+CHECKPOINT_FREQ = 10
 D_OPTIMIZER = optimizers.Adam(learning_rate=LEARNING_RATE, beta_1 = ADAM_BETA_1, beta_2 = ADAM_BETA_2)
 G_OPTIMIZER = optimizers.Adam(learning_rate=LEARNING_RATE, beta_1 = ADAM_BETA_1, beta_2 = ADAM_BETA_2)
 Q_OPTIMIZER = optimizers.RMSprop(learning_rate = LEARNING_RATE)
