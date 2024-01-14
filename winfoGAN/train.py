@@ -39,10 +39,10 @@ GP_WEIGHT = 100
 LEARNING_RATE = 1e-4
 ADAM_BETA_1 = 0.5
 ADAM_BETA_2 = 0.9
-BATCH_SIZE = 64
+BATCH_SIZE = 128
 #N_TRAIN =1280*2 #from 640
 EPOCHS = args.num_epochs
-CHECKPOINT_FREQ = 15
+CHECKPOINT_FREQ = 100
 D_OPTIMIZER = optimizers.Adam(learning_rate=LEARNING_RATE, beta_1 = ADAM_BETA_1, beta_2 = ADAM_BETA_2)
 G_OPTIMIZER = optimizers.Adam(learning_rate=LEARNING_RATE, beta_1 = ADAM_BETA_1, beta_2 = ADAM_BETA_2)
 Q_OPTIMIZER = optimizers.RMSprop(learning_rate = LEARNING_RATE)
