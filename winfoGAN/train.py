@@ -22,10 +22,51 @@ import argparse
 parser = argparse.ArgumentParser()
 
 parser.add_argument(
-        'num_epochs',
+        '--epochs',
         type=int,
         default=5000,
         help='Epochs'
+    )
+
+parser.add_argument(
+        '--cont',
+        type=str,
+        default=None,
+        help='model number to continue training from'
+    )
+parser.add_argument(
+        '--checkpoints',
+        type=int,
+        default=100,
+        help='model checkpint interval'
+    )
+
+parser.add_argument(
+        '--batch_size',
+        type=int,
+        default=64,
+        help='Batch size'
+    )
+
+parser.add_argument(
+        '--d_steps',
+        type=int,
+        default=5,
+        help='discriminator update steps'
+    )
+
+parser.add_argument(
+        '--gp_weight',
+        type=int,
+        default=10,
+        help='weighting of gradient penalty term'
+    )
+
+parser.add_argument(
+        '--n_cat',
+        type=int,
+        default=5,
+        help='number of latent code categories'
     )
 
 args = parser.parse_args()
@@ -34,19 +75,19 @@ DIM = 64
 CHANNELS = 1 #keeping as 1? what for mono or stereo?
 PHASE_PARAM = 2
 LATENT_DIM = 100
-DISCRIMINATOR_STEPS = 5
-GP_WEIGHT = 100
+DISCRIMINATOR_STEPS = args.d_steps
+GP_WEIGHT = args.gp_weight
 LEARNING_RATE = 1e-4
 ADAM_BETA_1 = 0.5
 ADAM_BETA_2 = 0.9
-BATCH_SIZE = 128
+BATCH_SIZE = args.batch_size
 #N_TRAIN =1280*2 #from 640
-EPOCHS = args.num_epochs
-CHECKPOINT_FREQ = 100
+EPOCHS = args.epochs
+CHECKPOINT_FREQ = args.checkpoints
 D_OPTIMIZER = optimizers.Adam(learning_rate=LEARNING_RATE, beta_1 = ADAM_BETA_1, beta_2 = ADAM_BETA_2)
 G_OPTIMIZER = optimizers.Adam(learning_rate=LEARNING_RATE, beta_1 = ADAM_BETA_1, beta_2 = ADAM_BETA_2)
 Q_OPTIMIZER = optimizers.RMSprop(learning_rate = LEARNING_RATE)
-N_CATEGORIES = 5
+N_CATEGORIES = args.n_cat
 SLICE_LEN = 16384
 
 
@@ -74,6 +115,14 @@ wavegan = GAN(
 #    g_optimizer = optimizers.Adam(learning_rate=LEARNING_RATE, beta_1 = ADAM_BETA_1, beta_2 = ADAM_BETA_2),
 #    q_optimizer= optimizers.RMSprop(learning_rate = LEARNING_RATE)
 #)
+if args.cont:
+    model_directory = f"/mt/home/jdave/onedrive/models_{args.continue_train_number}"
+    wavegan.generator.load_weights(f"{model_directory}/generator")
+    wavegan.discriminator.load_weights(f"{model_directory}/discriminator")
+    wavegan.auxiliary.load_weights(f"{model_directory}/auxiliary")
+
+    
+
 
 wavegan.compile(
     d_optimizer = D_OPTIMIZER,

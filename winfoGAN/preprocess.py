@@ -83,22 +83,21 @@ def load_raw_audio(data_path, n_train_data, model_path, n_types,folders = False)
                     signal, sr = lb.load(file_path, sr= 16000) #loading in at 16KHz sampling rate
                     #22050
                     signal = set_duration(signal, max = 16384)
+                    signal /= np.max(np.abs(signal))
                     audio.append(signal)
-                #file_path = os.path.join(data_path, file)
-                #signal, sr = lb.load(file_path)
-                #signal = set_duration(signal, max = 16384)
-                #audio.append(signal)
+
     print(f"Loaded audio from {data_path}")
 
     audio = np.array(audio)
     print(f"obtained {len(audio)} samples")
     print(f"got audio for {types}")
     random.shuffle(audio)
+    
     audio = audio[:n_train_data]
     print(f"reduced to {n_train_data} training samlples")
 
-    audio = z_score_normalise(audio, model_path)
-    print("normalised")
+    #audio = z_score_normalise(audio, model_path)
+    #print("normalised")
 
     
     audio = np.expand_dims(audio, axis=-1)

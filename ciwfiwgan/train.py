@@ -11,6 +11,7 @@ from scipy.io.wavfile import read
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
+import random
 
 from infowavegan import WaveGANGenerator, WaveGANDiscriminator, WaveGANQNetwork
 from utils import get_continuation_fname
@@ -38,6 +39,7 @@ class AudioDataSet:
             audio /= np.max(np.abs(audio))
             x[i, 0, :] = audio
             i += 1
+        random.shuffle(x)
         x= x[:2048] #get 2048 samples
         self.len = len(x)
         self.audio = torch.from_numpy(np.array(x, dtype=np.float32))
