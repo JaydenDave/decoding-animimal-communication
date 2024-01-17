@@ -81,7 +81,7 @@ LEARNING_RATE = 1e-4
 ADAM_BETA_1 = 0.5
 ADAM_BETA_2 = 0.9
 BATCH_SIZE = args.batch_size
-#N_TRAIN =1280*2 #from 640
+N_TRAIN =2048
 EPOCHS = args.epochs
 CHECKPOINT_FREQ = args.checkpoints
 D_OPTIMIZER = optimizers.Adam(learning_rate=LEARNING_RATE, beta_1 = ADAM_BETA_1, beta_2 = ADAM_BETA_2)
@@ -138,8 +138,8 @@ os.mkdir(model_path)
 #path = "/mt/home/jdave/datasets/sc09/sc09/train"
 path = "/mt/home/jdave/onedrive/zebra_finch/"
 print(f"Loading data from {path}")
-#train_data = load_raw_audio(path, n_train_data= N_TRAIN, model_path= model_path, n_types= N_CATEGORIES)
-train_data, N_TRAIN = load_zebra_finch(path, slice_len=SLICE_LEN, model_path= model_path, n_types = 8, batch_size=BATCH_SIZE)
+train_data = load_raw_audio(path, n_train_data= N_TRAIN, model_path= model_path, n_types= 10)
+#train_data, N_TRAIN = load_zebra_finch(path, slice_len=SLICE_LEN, model_path= model_path, n_types = 8, batch_size=BATCH_SIZE)
 
 specs={"Discriminator Steps": DISCRIMINATOR_STEPS,
        "GP Weight": GP_WEIGHT,
