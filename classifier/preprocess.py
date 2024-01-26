@@ -76,7 +76,8 @@ def load_zebra_finch(data_dir,slice_len, model_path, n_types, n_train_data=None,
     audio = np.array(audio)
     n_train_data = len(audio)
     print(f"reduced to {n_train_data} training samlples")
-    labels = pd.get_dummies(df_top['call_type']).values
+    labels = (pd.get_dummies(df_top['call_type']).values).astype('float32')
+
 
     audio = np.expand_dims(audio, axis=-1)
     return audio, labels
