@@ -132,7 +132,7 @@ model_checkpoint_callback = callbacks.ModelCheckpoint(
 )
 
 tensorboard_callback = callbacks.TensorBoard(log_dir=f"{model_path}/logs")
-data = (X_train, y_train)
+data = [X_train, y_train]
 model.fit(data,
     batch_size = BATCH_SIZE,
     shuffle = True,
