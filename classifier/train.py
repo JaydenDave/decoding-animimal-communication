@@ -42,6 +42,13 @@ parser.add_argument(
         help='Batch size'
     )
 
+parser.add_argument(
+        '--n_cat',
+        type=int,
+        default=5,
+        help='n categories'
+    )
+
 args = parser.parse_args()
 
 LEARNING_RATE = 1e-4
@@ -80,7 +87,7 @@ os.mkdir(model_path)
 path = "/mt/home/jdave/onedrive/zebra_finch/"
 print(f"Loading data from {path}")
 
-data, labels = load_zebra_finch(path, slice_len=SLICE_LEN, model_path= model_path, n_types = 5, batch_size=BATCH_SIZE, equal = True)
+data, labels = load_zebra_finch(path, slice_len=SLICE_LEN, model_path= model_path, n_types = N_CATEGORIES, batch_size=BATCH_SIZE, equal = True)
 
 X_train, X_val, y_train, y_val = train_test_split(data, labels, test_size=0.2, random_state=7)
 n_train = X_train.shape[0]
