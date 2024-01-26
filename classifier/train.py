@@ -150,7 +150,7 @@ print("models saved")
 print("testing...")
 classifier = model.classifier
 
-epochs_list = np.arrange(0,EPOCHS +CHECKPOINT_FREQ,CHECKPOINT_FREQ)
+epochs_list = np.arange(0,EPOCHS +CHECKPOINT_FREQ,CHECKPOINT_FREQ)
 train_accs = []
 test_accs =[]
 for epoch in epochs_list:
