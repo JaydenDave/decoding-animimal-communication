@@ -62,7 +62,7 @@ class CLASSIFICATION_MODEL(models.Model):
         self.optimizer = optimizer
 
         self.loss_metric = metrics.Mean(name="loss")
-        self.train_accuracy_metric = metrics.accuracy(name= "train_acc")
+        self.train_accuracy_metric = metrics.Accuracy(name= "train_acc")
 
         self.optimizer.build(self.classifier.trainable_variables)
 
