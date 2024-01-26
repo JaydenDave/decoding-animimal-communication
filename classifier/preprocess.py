@@ -58,7 +58,7 @@ def load_zebra_finch(data_dir,slice_len, model_path, n_types, n_train_data=None,
     print(f"top {n_types} call types for duration <= {dur}: {top_n}")
     df_top = df[df["call_type"].isin(top_n)]
     if equal:
-        min_count = min(call_type_counts.head(n_types).value.tolist())
+        min_count = min(call_type_counts.head(n_types).values.tolist())
 
         def sample_from_group(group):
             return group.sample(min_count, replace=True)
