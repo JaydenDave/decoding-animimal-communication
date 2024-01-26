@@ -88,8 +88,8 @@ class CLASSIFICATION_MODEL(models.Model):
         self.optimizer.apply_gradients(zip(gradient, self.classifier.trainable_variables))
         
         self.loss_metric.update_state(loss)
-        self.train_accuracy_metric.update_state(labels=tf.argmax(labels, 1), 
-                                  predictions=tf.argmax(predictions,1))
+        self.train_accuracy_metric.update_state(tf.argmax(labels, 1), 
+                                  tf.argmax(predictions,1))
        
         
         return {m.name: m.result() for m in self.metrics}
