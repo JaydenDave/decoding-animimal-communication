@@ -68,6 +68,8 @@ def load_zebra_finch(data_dir,slice_len, model_path, n_types, n_train_data=None,
 
         # Reset the index of the resulting DataFrame
         df_top.reset_index(drop=True, inplace=True)
+        call_type_counts = df_top["call_type"].value_counts()
+        print(call_type_counts)
     
     audio = [centre_and_pad(signal, slice_len) for signal in df_top["rec"]]
     audio = [bandpass_filter(signal,250,12000, sr) for signal in audio]
