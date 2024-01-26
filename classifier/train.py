@@ -12,12 +12,14 @@ from tensorflow.keras import (
     optimizers,
 )
 import librosa as lb
+import sklearn.metrics
 from sklearn.model_selection import train_test_split
 from classifier import CLASSIFICATION_MODEL
 from preprocess import load_zebra_finch
 import datetime
 import json
 import argparse
+import pandas as pd
 
 parser = argparse.ArgumentParser()
 
@@ -145,4 +147,26 @@ model.fit(X_train, y_train,
 model.classifier.save(f"{model_path}/classifer{EPOCHS}")
 
 print("models saved")
-print("complete")
+print("testing...")
+classifier = model.classifier
+
+epochs_list = np.arrange(0,EPOCHS +CHECKPOINT_FREQ,CHECKPOINT_FREQ)
+train_accs = []
+test_accs =[]
+for epoch in epochs_list:
+    
+    classifier.load_weights(f"{model_path}/classifier{epoch}")
+    y_pred_train = np.argmax(classifier.predict(X_train), axis=1)
+    train_accuracy= sklearn.metrics.accuracy_score(np.argmax(y_train,axis =1), y_pred_train)
+
+    y_pred_test = np.argmax(classifier.predict(X_val), axis =1)
+    test_accuracy= sklearn.metrics.accuracy_score(np.argmax(y_val, axis=1), y_pred_test)
+    
+    train_accs.append(train_accuracy)
+    test_accs.append(test_accuracy)
+    print(f"epoch{epoch}, train_acc {train_accuracy}, test_acc {test_accuracy}")
+    
+
+df = pd.DataFrame({"epochs":epochs_list, "train_acc": train_accs,"test_acc": test_accs})
+df.to_csv(f"{model_path}/metrics.csv", index= False)
+
