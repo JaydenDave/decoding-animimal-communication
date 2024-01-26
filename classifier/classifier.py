@@ -75,7 +75,8 @@ class CLASSIFICATION_MODEL(models.Model):
             ]
 
       
-    def train_step(self, data, labels):
+    def train_step(self, data):
+        data, labels = data
         batch_size = tf.shape(data)[0]
 
         with tf.GradientTape() as tape:

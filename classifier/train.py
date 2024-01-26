@@ -134,8 +134,8 @@ model_checkpoint_callback = callbacks.ModelCheckpoint(
 tensorboard_callback = callbacks.TensorBoard(log_dir=f"{model_path}/logs")
 
 model.fit(
-    X_train,
-    y_train,
+    (X_train,
+    y_train),
     batch_size = BATCH_SIZE,
     shuffle = True,
     epochs=EPOCHS,
