@@ -69,6 +69,13 @@ parser.add_argument(
         help='number of latent code categories'
     )
 
+parser.add_argument(
+        '--equal',
+        type=bool,
+        default=True,
+        help='make the input data the same amount from each call type?'
+    )
+
 args = parser.parse_args()
 
 DIM = 64
@@ -140,7 +147,7 @@ path = "/mt/home/jdave/onedrive/zebra_finch/"
 #path = "/mt/home/jdave/onedrive/sc09/train/"
 print(f"Loading data from {path}")
 #train_data = load_raw_audio(path, n_train_data= N_TRAIN, model_path= model_path, n_types= 10)
-train_data, N_TRAIN = load_zebra_finch(path, slice_len=SLICE_LEN, model_path= model_path, n_types = 5, batch_size=BATCH_SIZE)
+train_data, N_TRAIN = load_zebra_finch(path, slice_len=SLICE_LEN, model_path= model_path, n_types = 5, batch_size=BATCH_SIZE, equal=args.equal)
 
 specs={"Discriminator Steps": DISCRIMINATOR_STEPS,
        "GP Weight": GP_WEIGHT,
