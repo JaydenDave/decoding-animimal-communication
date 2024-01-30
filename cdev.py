@@ -85,20 +85,18 @@ for epoch in ["1000","2000","3000","4000",""]:
             f0_avg = np.average(f0s)
             f0_std = np.std(f0s)
             
-            epochs.append(int(epoch))
+
             doses.append(dose)
             bits.append(bit)
             fundamental_freqs.append(f0_avg)
             f0_stds.append(f0_std)
-z_dim = specs["Latent Dim"] - specs["N Categories"]
-col_names = [f"z_{num}" for num in range(z_dim)] + [f"bit_{num}" for num in range(specs["N Categories"])]
-raw_data = pd.DataFrame(all_inputs, columns=col_names)
-raw_data["F0"] = all_f0
-raw_data["epoch"] =epochs
-df['bit'] = bits
-df['dose'] = doses
-df['f0'] = fundamental_freqs
-df['f0 std'] = f0_stds
-df["epoch"]=epochs
-df.to_csv(f"{model_directory}/Bits{EPOCH}.csv", index= False)
-raw_data.to_csv(f"{model_directory}/raw_data{EPOCH}.csv", index= False)
+    z_dim = specs["Latent Dim"] - specs["N Categories"]
+    col_names = [f"z_{num}" for num in range(z_dim)] + [f"bit_{num}" for num in range(specs["N Categories"])]
+    raw_data = pd.DataFrame(all_inputs, columns=col_names)
+    raw_data["F0"] = all_f0
+    df['bit'] = bits
+    df['dose'] = doses
+    df['f0'] = fundamental_freqs
+    df['f0 std'] = f0_stds
+    df.to_csv(f"{model_directory}/Bits{epoch}.csv", index= False)
+    raw_data.to_csv(f"{model_directory}/raw_data{epoch}.csv", index= False)
