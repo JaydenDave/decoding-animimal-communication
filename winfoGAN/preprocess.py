@@ -121,7 +121,7 @@ def load_macaque_data(data_dir,slice_len, model_path, batch_size= 64):
     print(f"processed {len(recs)} out of {len(os.listdir(data_dir))}")
     df= df.loc[df["n_samples"]<=16384]
     df = df[df["type"].isin(["TH","MU","IO","AL"])]
-    call_type_counts =filtered["type"].value_counts()
+    call_type_counts =df["type"].value_counts()
     #min_count = min(call_type_counts.values.tolist())
     min_count =960
 
