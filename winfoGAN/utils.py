@@ -144,8 +144,8 @@ def create_fft(signal,sr, font_size = 13):
 
 def generate_samples(generator, input, model_directory):
     generated_audio = generator.predict(input) 
-    generated_audio= np.squeeze(generated_audio)
-    audio = denormalise(generated_audio,f"{model_directory}/normaliser_values")
+    audio= np.squeeze(generated_audio)
+    #audio = denormalise(generated_audio,f"{model_directory}/normaliser_values")
     return audio
 
 def avg_fundamental_freq(inputs, sr):
@@ -157,9 +157,9 @@ def avg_fundamental_freq(inputs, sr):
         fundamental_freq_index = np.argmax(amplitudes)
         fundamental_freq= frequencies[fundamental_freq_index]
         freqs.append(fundamental_freq)
-    avg= np.average(freqs)
-    std = np.std(freqs)
-    return avg,std
+    #avg= np.average(freqs)
+    #std = np.std(freqs)
+    return freqs
 
 
 
