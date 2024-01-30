@@ -129,11 +129,11 @@ def load_macaque_data(data_dir,slice_len, model_path, batch_size= 64):
         return group.sample(min_count, replace=True)
 
     # Apply the sampling function to each group
-    filtered = filtered.groupby('type', group_keys=False).apply(sample_from_group)
+    df = df.groupby('type', group_keys=False).apply(sample_from_group)
 
     # Reset the index of the resulting DataFrame
-    filtered.reset_index(drop=True, inplace=True)
-    call_type_counts = filtered["type"].value_counts()
+    df.reset_index(drop=True, inplace=True)
+    call_type_counts = df["type"].value_counts()
     print(call_type_counts)
 
     n_train_data = (df.shape[0]//batch_size) *batch_size
