@@ -14,7 +14,7 @@ from tensorflow.keras import (
 import librosa as lb
 #from model import GAN
 from model import GAN
-from preprocess import load_raw_audio, load_zebra_finch
+from preprocess import load_raw_audio, load_zebra_finch, load_macaque_data
 import datetime
 import json
 import argparse
@@ -142,12 +142,15 @@ time = datetime.datetime.now().strftime("%d%m.%H%M")
 model_path = f"/mt/home/jdave/onedrive/models_{time}"
 os.mkdir(model_path)
 
-#path = "/mt/home/jdave/datasets/sc09/sc09/train"
+
 path = "/mt/home/jdave/onedrive/zebra_finch/"
+path ="/mt/home/jdave/onedrive/macaque/"
 #path = "/mt/home/jdave/onedrive/sc09/train/"
 print(f"Loading data from {path}")
 #train_data = load_raw_audio(path, n_train_data= N_TRAIN, model_path= model_path, n_types= 10)
 train_data, N_TRAIN = load_zebra_finch(path, slice_len=SLICE_LEN, model_path= model_path, n_types = 5, batch_size=BATCH_SIZE, equal=args.equal)
+train_data,labels = load_macaque_data(path,slice_len= SLICE_LEN, model_path= model_path, batch_size= BATCH_SIZE)
+N_TRAIN =3840
 
 specs={"Discriminator Steps": DISCRIMINATOR_STEPS,
        "GP Weight": GP_WEIGHT,
