@@ -5,3 +5,7 @@ waveGAN/__pycache__/preprocess.cpython-38.pyc
 winfoGAN/__pycache__/model_continuous.cpython-38.pyc
 winfoGAN/__pycache__/preprocess.cpython-38.pyc
 winfoGAN/__pycache__/preprocess.cpython-38.pyc
+*.pyc
+/.idea/
+*.pkl
+/__pycache__/
