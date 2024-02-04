@@ -90,5 +90,50 @@ def bandpass_filter(data, low, high, sr, order=5):
     filtered = np.array(lfilter(b, a, data))
     return filtered
 
+def load_macaque_data(data_dir,slice_len, model_path, batch_size= 64):
+    recs = []
+    call_types = []
+    df = pd.DataFrame()
+    for file_name in os.listdir(data_dir):
+        recording, sr = lb.load(f'{data_dir}{file_name}', sr = 24414)
+        try:
+            call_type = file_name[:2]
+            recording /= np.max(np.abs(recording))
+            recs.append(recording)
+            call_types.append(call_type)
+        except:
+            continue
+    df["audio"]= recs
+    df["n_samples"] = [len(audio)for audio in recs]
+    df["type"] = call_types
+    print(f"processed {len(recs)} out of {len(os.listdir(data_dir))}")
+    df= df.loc[df["n_samples"]<=16384]
+    df = df[df["type"].isin(["TH","MU","IO","AL"])]
+    call_type_counts =df["type"].value_counts()
+    #min_count = min(call_type_counts.values.tolist())
+    min_count =960
+
+    def sample_from_group(group):
+        return group.sample(min_count, replace=True)
+
+    # Apply the sampling function to each group
+    df = df.groupby('type', group_keys=False).apply(sample_from_group)
+
+    # Reset the index of the resulting DataFrame
+    df.reset_index(drop=True, inplace=True)
+    call_type_counts = df["type"].value_counts()
+    print(call_type_counts)
+
+    n_train_data = (df.shape[0]//batch_size) *batch_size
+    audio = [centre_and_pad(signal, slice_len) for signal in df["audio"]]
+    #audio = [bandpass_filter(signal,50,45000, sr) for signal in audio]
+    audio = np.array(audio)
+    
+    print(f"reduced to {n_train_data} training samlples")
+    labels = (pd.get_dummies(df['type']).values).astype('float32')
+
+
+    audio = np.expand_dims(audio, axis=-1)
+    return audio, labels
 
 

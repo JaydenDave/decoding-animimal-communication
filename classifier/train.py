@@ -15,7 +15,7 @@ import librosa as lb
 import sklearn.metrics
 from sklearn.model_selection import train_test_split
 from classifier import CLASSIFICATION_MODEL
-from preprocess import load_zebra_finch
+from preprocess import load_zebra_finch, load_macaque_data
 import datetime
 import json
 import argparse
@@ -26,14 +26,14 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
         '--epochs',
         type=int,
-        default=5000,
+        default=50,
         help='Epochs'
     )
 
 parser.add_argument(
         '--checkpoints',
         type=int,
-        default=100,
+        default=5,
         help='model checkpint interval'
     )
 
@@ -86,10 +86,12 @@ time = datetime.datetime.now().strftime("%d%m.%H%M")
 model_path = f"/mt/home/jdave/onedrive/classifier_{time}"
 os.mkdir(model_path)
 
-path = "/mt/home/jdave/onedrive/zebra_finch/"
+path ="/mt/home/jdave/onedrive/macaque/train/"
+#path = "/mt/home/jdave/onedrive/zebra_finch/"
 print(f"Loading data from {path}")
 
-data, labels = load_zebra_finch(path, slice_len=SLICE_LEN, model_path= model_path, n_types = N_CATEGORIES, batch_size=BATCH_SIZE, equal = True)
+data,labels = load_macaque_data(path,slice_len= SLICE_LEN, model_path= model_path, batch_size= BATCH_SIZE)
+#data, labels = load_zebra_finch(path, slice_len=SLICE_LEN, model_path= model_path, n_types = N_CATEGORIES, batch_size=BATCH_SIZE, equal = True)
 
 X_train, X_val, y_train, y_val = train_test_split(data, labels, test_size=0.2, random_state=7)
 n_train = X_train.shape[0]
@@ -150,7 +152,7 @@ print("models saved")
 print("testing...")
 classifier = model.classifier
 
-epochs_list = np.arange(0,EPOCHS +CHECKPOINT_FREQ,CHECKPOINT_FREQ)
+epochs_list = np.arange(0,EPOCHS+CHECKPOINT_FREQ ,CHECKPOINT_FREQ)
 train_accs = []
 test_accs =[]
 for epoch in epochs_list:

@@ -111,6 +111,7 @@ def load_macaque_data(data_dir,slice_len, model_path, batch_size= 64):
         recording, sr = lb.load(f'{data_dir}{file_name}', sr = 24414)
         try:
             call_type = file_name[:2]
+            recording /= np.max(np.abs(recording))
             recs.append(recording)
             call_types.append(call_type)
         except:
