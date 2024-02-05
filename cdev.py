@@ -8,6 +8,7 @@ import json
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
+import tensorflow as tf
 #from utils import *
 
 parser = argparse.ArgumentParser()
@@ -40,7 +41,7 @@ parser.add_argument(
         help='baseline_dose'
     )
 args = parser.parse_args()
-EPOCH = args.epoch
+epoch = args.epoch
 
 NUM = args.num
 BASELINE_DOSE = args.baseline
@@ -61,22 +62,37 @@ gan = GAN(
 generator = gan.generator
 
 
-df = pd.DataFrame()
+
 doses = []
-bits = []
+bit_vals = []
 epochs=[]
 fundamental_freqs = []
 f0_stds = []
-sr = 16000
+sr = 24414
 all_inputs = []
 all_f0 =[]
 dose_vals =np.arange(-1, 13, 0.5)
+#generate z part which will stay the same for all
+
+latent_dim = specs["Latent Dim"]
+n_cat = specs["N Categories"]
+bits = range(n_cat)
+z_dim = latent_dim-n_cat
+z= np.random.normal(size=(NUM, latent_dim))
+z[:,z_dim:]= BASELINE_DOSE
+
 for epoch in ["1000","2000","3000","4000",""]:
+    df = pd.DataFrame()
     generator.load_weights(f"{model_directory}/generator{epoch}")
     epoch = "5000" if epoch =="" else epoch
     for dose in tqdm(dose_vals):
-        inputs = create_inputs(specs, NUM, bit_value = dose, baseline_dose = BASELINE_DOSE)
-        for bit,input in enumerate(inputs):
+        
+        for bit in bits:
+            z[:,z_dim:]= BASELINE_DOSE
+            z[:,z_dim+bit]=dose
+            input= tf.convert_to_tensor(z, dtype=tf.float32)
+
+
             all_inputs += list(input.numpy())
             generated_audio = generator.predict(input)
             generated= np.squeeze(generated_audio)
@@ -87,14 +103,14 @@ for epoch in ["1000","2000","3000","4000",""]:
             
 
             doses.append(dose)
-            bits.append(bit)
+            bit_vals.append(bit)
             fundamental_freqs.append(f0_avg)
             f0_stds.append(f0_std)
-    z_dim = specs["Latent Dim"] - specs["N Categories"]
+
     col_names = [f"z_{num}" for num in range(z_dim)] + [f"bit_{num}" for num in range(specs["N Categories"])]
     raw_data = pd.DataFrame(all_inputs, columns=col_names)
     raw_data["F0"] = all_f0
-    df['bit'] = bits
+    df['bit'] = bit_vals
     df['dose'] = doses
     df['f0'] = fundamental_freqs
     df['f0 std'] = f0_stds
