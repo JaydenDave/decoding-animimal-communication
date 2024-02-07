@@ -63,14 +63,11 @@ generator = gan.generator
 
 
 
-doses = []
-bit_vals = []
+
 epochs=[]
-fundamental_freqs = []
-f0_stds = []
+
 sr = 24414
-all_inputs = []
-all_f0 =[]
+
 dose_vals =np.arange(-1, 13, 0.5)
 #generate z part which will stay the same for all
 
@@ -83,6 +80,12 @@ z[:,z_dim:]= BASELINE_DOSE
 
 for epoch in ["400","1000","2000","3000"]:
     df = pd.DataFrame()
+    all_inputs = []
+    all_f0 =[]
+    doses = []
+    bit_vals = []
+    fundamental_freqs = []
+    f0_stds = []
     generator.load_weights(f"{model_directory}/generator{epoch}")
     epoch = "5000" if epoch =="" else epoch
     for dose in tqdm(dose_vals):
