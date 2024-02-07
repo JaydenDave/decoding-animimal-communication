@@ -78,7 +78,7 @@ z_dim = latent_dim-n_cat
 z= np.random.normal(size=(NUM, latent_dim))
 z[:,z_dim:]= BASELINE_DOSE
 
-for epoch in ["400","1000","2000","3000"]:
+for epoch in ["300","600","1400"]:
     df = pd.DataFrame()
     all_inputs = []
     all_f0 =[]
