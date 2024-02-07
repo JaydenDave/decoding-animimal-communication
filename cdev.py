@@ -81,7 +81,7 @@ z_dim = latent_dim-n_cat
 z= np.random.normal(size=(NUM, latent_dim))
 z[:,z_dim:]= BASELINE_DOSE
 
-for epoch in ["1000","2000","3000","4000",""]:
+for epoch in ["400","1000","2000","3000"]:
     df = pd.DataFrame()
     generator.load_weights(f"{model_directory}/generator{epoch}")
     epoch = "5000" if epoch =="" else epoch
