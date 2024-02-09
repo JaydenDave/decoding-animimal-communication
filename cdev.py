@@ -59,7 +59,7 @@ parser.add_argument(
 
 args = parser.parse_args()
 epochs = [args.epoch]
-epochs = ["400", "600", "1000"]
+#epochs = ["400", "600", "1000"]
 sr = args.sr
 NUM = args.num
 BASELINE_DOSE = args.baseline
@@ -113,6 +113,7 @@ for epoch in epochs:
     doses = []
     bit_vals = []
     outputs=defaultdict(list)
+    classes = defaultdict(list)
     
 
     generator.load_weights(f"{model_directory}/generator{epoch}")
@@ -146,8 +147,11 @@ for epoch in epochs:
             #classifier
             pred_labels = np.argmax(classifier.predict(generated), axis=1)
             count =Counter(pred_labels)
-            for key, value in count.items():
-                frac= value/NUM
+            for key in range(4):
+                if count[key]:
+                    frac= count[key]/NUM
+                else:
+                    frac =0
                 outputs[f"cls_{key}"].append(frac)
 
             #apply acoustic proprty finding algorithms to generated samples
