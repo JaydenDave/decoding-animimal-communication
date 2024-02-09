@@ -3,13 +3,14 @@ import sys
 from winfoGAN.utils import create_inputs, avg_fundamental_freq
 #sys.path.append("winfoGAN")
 from winfoGAN.model import GAN
+from classifier.classifier import CLASSIFICATION_MODEL
 import argparse
 import json
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
 import tensorflow as tf
-from collections import defaultdict
+from collections import defaultdict, Counter
 #from utils import *
 
 parser = argparse.ArgumentParser()
@@ -49,8 +50,16 @@ parser.add_argument(
         help='sampling rate of audio'
     )
 
+parser.add_argument(
+        '--classifier',
+        type=str,
+        default = "/mt/home/jdave/onedrive/classifier_0402.1350",
+        help='sampling rate of audio'
+    )
+
 args = parser.parse_args()
 epochs = [args.epoch]
+epochs = ["400", "600", "1000"]
 sr = args.sr
 NUM = args.num
 BASELINE_DOSE = args.baseline
@@ -61,6 +70,11 @@ spec_path = f"{model_directory}/model_specifications.json"
 with open(spec_path, 'r') as f:
   specs = json.load(f)
 
+classifier_directory =args.classifier
+spec_path = f"{classifier_directory}/model_specifications.json"
+with open(spec_path, 'r') as f:
+  classifier_specs = json.load(f)
+
 gan = GAN(
     latent_dim = specs["Latent Dim"],
     discriminator_steps= specs["Discriminator Steps"],
@@ -68,6 +82,14 @@ gan = GAN(
     n_categories= specs["N Categories"],
     slice_len=16384,
 )
+classifier = CLASSIFICATION_MODEL(
+   n_categories = classifier_specs["N Categories"],
+   slice_len = classifier_specs["Slice Length"]
+)
+
+classifier = classifier.classifier
+classifier.load_weights(f"{classifier_directory}/classifier10")
+
 
 generator = gan.generator
 
@@ -91,6 +113,7 @@ for epoch in epochs:
     doses = []
     bit_vals = []
     outputs=defaultdict(list)
+    
 
     generator.load_weights(f"{model_directory}/generator{epoch}")
     epoch = "5000" if epoch =="" else epoch
@@ -119,6 +142,13 @@ for epoch in epochs:
             doses.append(dose)
             bit_vals.append(bit)
             all_inputs += list(input.numpy())
+
+            #classifier
+            pred_labels = np.argmax(classifier.predict(generated), axis=1)
+            count =Counter(pred_labels)
+            for key, value in count.items():
+                frac= value/NUM
+                outputs[f"cls_{key}"].append(frac)
 
             #apply acoustic proprty finding algorithms to generated samples
             for function, name, baseline in zip(functions, function_labels, baselines):
