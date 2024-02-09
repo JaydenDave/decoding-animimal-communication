@@ -22,9 +22,9 @@ parser.add_argument(
     )
 
 parser.add_argument(
-        '--epochs',
-        type=list,
-        default = ["1000","2000","3000"],
+        '--epoch',
+        type=str,
+        default = "1000",
         help='generator epochs to loop through'
     )
 
@@ -50,7 +50,7 @@ parser.add_argument(
     )
 
 args = parser.parse_args()
-epochs = args.epochs
+epochs = [args.epoch]
 sr = args.sr
 NUM = args.num
 BASELINE_DOSE = args.baseline
