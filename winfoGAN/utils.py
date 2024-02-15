@@ -175,3 +175,23 @@ def RMS_energy(signal, frame_size, hop_length, sr):
     frames = range(0,rms.size)
     t = lb.frames_to_time(frames, hop_length= hop_length, sr = sr)
     return t,rms
+
+def cut_signal(signal,sr, window_size=20):
+    t,rms= RMS_energy(signal,32,16,sr)
+
+    num_windows = len(rms) // window_size
+    background_noise_level = 1000
+    for i in range(num_windows):
+        start = i * window_size
+        end = (i + 1) * window_size
+        mean_amplitude = np.mean(rms[start:end])
+        background_noise_level = min(background_noise_level,mean_amplitude)
+
+    std = np.std(rms)
+    threshold = background_noise_level + 0.2*std
+    signal_indexes = np.where(rms >= threshold)[0]
+    start,end= signal_indexes[0], signal_indexes[-1]
+    timepoints = t[start], t[end]
+    start,end = [int(round(i * sr)) for i in timepoints]
+    cut_signal = signal[start:end+1]
+    return cut_signal

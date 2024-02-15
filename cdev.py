@@ -1,6 +1,6 @@
 import sys
 
-from winfoGAN.utils import create_inputs, avg_fundamental_freq
+from winfoGAN.utils import create_inputs, avg_fundamental_freq, cut_signal
 #sys.path.append("winfoGAN")
 from winfoGAN.model import GAN
 from classifier.classifier import CLASSIFICATION_MODEL
@@ -102,8 +102,12 @@ bits = range(n_cat)
 z_dim = latent_dim-n_cat
 z= np.random.normal(size=(NUM, latent_dim))
 
-functions=[avg_fundamental_freq,]
-function_labels=["F0"]
+def duration(signals,sr):
+    return [len(signal)/sr for signal in signals]
+
+
+functions=[avg_fundamental_freq, duration]
+function_labels=["F0", "Duration"]
 
 for epoch in epochs:
     
@@ -124,8 +128,11 @@ for epoch in epochs:
     input= tf.convert_to_tensor(z, dtype=tf.float32)
     generated_audio = generator.predict(input)
     generated= np.squeeze(generated_audio)
-    baselines=[]
 
+    #cut audio
+    generated=[cut_signal(signal,sr) for signal in generated]
+
+    baselines=[]
     for function in functions:
         results= function(generated, sr = sr)
         baselines.append(results)
@@ -139,6 +146,7 @@ for epoch in epochs:
 
             generated_audio = generator.predict(input)
             generated= np.squeeze(generated_audio)
+            
 
             doses.append(dose)
             bit_vals.append(bit)
@@ -154,6 +162,7 @@ for epoch in epochs:
                     frac =0
                 outputs[f"cls_{key}"].append(frac)
 
+            generated=[cut_signal(signal,sr) for signal in generated]
             #apply acoustic proprty finding algorithms to generated samples
             for function, name, baseline in zip(functions, function_labels, baselines):
                 results= function(generated, sr = sr)
