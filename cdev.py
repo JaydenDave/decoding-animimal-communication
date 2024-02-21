@@ -106,8 +106,11 @@ def duration(signals,sr):
     return [len(signal)/sr for signal in signals]
 
 
-functions=[avg_fundamental_freq, duration]
-function_labels=["F0", "Duration"]
+#functions=[avg_fundamental_freq, duration]
+#function_labels=["F0", "Duration"]
+
+functions=[avg_fundamental_freq]
+function_labels=["F0"]
 
 for epoch in epochs:
     
@@ -130,7 +133,7 @@ for epoch in epochs:
     generated= np.squeeze(generated_audio)
 
     #cut audio
-    generated=[cut_signal(signal,sr) for signal in generated]
+    #generated=[cut_signal(signal,sr) for signal in generated]
 
     baselines=[]
     for function in functions:
@@ -162,7 +165,7 @@ for epoch in epochs:
                     frac =0
                 outputs[f"cls_{key}"].append(frac)
 
-            generated=[cut_signal(signal,sr) for signal in generated]
+            #generated=[cut_signal(signal,sr) for signal in generated]
             #apply acoustic proprty finding algorithms to generated samples
             for function, name, baseline in zip(functions, function_labels, baselines):
                 results= function(generated, sr = sr)
