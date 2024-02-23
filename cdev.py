@@ -124,7 +124,7 @@ for epoch in epochs:
     
 
     generator.load_weights(f"{model_directory}/generator{epoch}")
-    epoch = "5000" if epoch =="" else epoch
+    epoch = "10000" if epoch =="" else epoch
 
     #generate baseline for ate
     z[:,z_dim:]= BASELINE_DOSE
