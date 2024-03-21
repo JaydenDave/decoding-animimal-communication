@@ -9,3 +9,13 @@ winfoGAN/__pycache__/preprocess.cpython-38.pyc
 /.idea/
 *.pkl
 /__pycache__/
+*events
+*.pb
+Testing/models/vae/variables/variables.index
+Testing/models/vae/variables/variables.data-00000-of-00001
+Testing/models/encoder/variables/variables.index
+Testing/models/encoder/variables/variables.data-00000-of-00001
+Testing/models/decoder/variables/variables.index
+Testing/models/decoder/variables/variables.data-00000-of-00001
+Testing/logs/train/events.out.tfevents.1709902270.JAYDEN-LAPTOP.32848.0.v2
+Testing/logs/validation/events.out.tfevents.1709902441.JAYDEN-LAPTOP.32848.1.v2

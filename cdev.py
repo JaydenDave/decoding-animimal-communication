@@ -11,6 +11,9 @@ import numpy as np
 from tqdm import tqdm
 import tensorflow as tf
 from collections import defaultdict, Counter
+import scipy.signal
+from scipy.fft import fft, fftfreq, rfft, rfftfreq
+import librosa as lb
 #from utils import *
 
 parser = argparse.ArgumentParser()
@@ -102,15 +105,65 @@ bits = range(n_cat)
 z_dim = latent_dim-n_cat
 z= np.random.normal(size=(NUM, latent_dim))
 
-def duration(signals,sr):
+def durations(signals,sr):
     return [len(signal)/sr for signal in signals]
 
+def ZCRs(signals, sr):
+    zcrs=[]
+    for signal in signals:
+        zcr = lb.feature.zero_crossing_rate(y=signal,frame_length=32, hop_length=16)[0]
+        zcrs.append(np.average(zcr))
+    return zcrs
 
-#functions=[avg_fundamental_freq, duration]
-#function_labels=["F0", "Duration"]
+def fundamentals(signals,sr):
+    avg_f0s=[]
+    start_f0s=[]
+    end_f0s=[]
+    max_f0s=[]
+    range_f0s=[]
+    f1s=[]
 
-functions=[avg_fundamental_freq]
-function_labels=["F0"]
+    for signal in signals:
+        f0, voiced_flag, voiced_probs = lb.pyin(signal,
+                                                    fmin=200,
+                                                    fmax=800,
+                                                    sr =sr,
+                                                    frame_length = 1024)
+
+        #times = lb.times_like(f0,sr=sr,hop_length=1024//4)
+
+        #find the 2nd peak in the fft for f1
+        amplitudes = np.abs(rfft(signal))
+        peaks,y =scipy.signal.find_peaks(amplitudes,distance=100)
+        n_samples = len(signal)
+        frequencies = rfftfreq(n_samples, 1/sr)
+        peak_heights = amplitudes[peaks]
+        peak_freq_locations = frequencies[peaks]
+
+        #find index of max
+        peak_0_index= np.argmax(peak_heights)
+
+        #getting it to look for 2nd highest peak
+        peak_heights = np.delete(peak_heights, peak_0_index)
+        #needs the +1 because of the one removed from removing the main peak
+        second_highest= np.argmax(peak_heights)+1
+        f1s.append(peak_freq_locations[second_highest])
+        
+
+        f0_clean = [x for x in f0 if not np.isnan(x)]
+
+        avg_f0s.append(np.mean(f0_clean))
+        start_f0s.append(f0_clean[0])
+        end_f0s.append(f0_clean[-1])
+        max_f0=max(f0_clean)
+        max_f0s.append(max_f0)
+        min_f0 = min(f0_clean)
+        range_f0s.append(max_f0 - min_f0)
+
+    
+    return avg_f0s,start_f0s,end_f0s,max_f0s,range_f0s,f1s
+
+
 
 for epoch in epochs:
     
@@ -133,12 +186,18 @@ for epoch in epochs:
     generated= np.squeeze(generated_audio)
 
     #cut audio
-    #generated=[cut_signal(signal,sr) for signal in generated]
+    generated=[cut_signal(signal,sr) for signal in generated]
 
-    baselines=[]
-    for function in functions:
-        results= function(generated, sr = sr)
-        baselines.append(results)
+    avg_f0s,start_f0s,end_f0s,max_f0s,range_f0s,f1s= fundamentals(generated,sr)
+    baselines={"zcr":ZCRs(generated,sr),
+               "dur":durations(generated,sr),
+               "f0":avg_f0s,
+               "start":start_f0s,
+               "end":end_f0s,
+               "max":max_f0s,
+               "range":range_f0s,
+               "f1":f1s}
+
 
     for dose in tqdm(dose_vals):
         
@@ -165,15 +224,55 @@ for epoch in epochs:
                     frac =0
                 outputs[f"cls_{key}"].append(frac)
 
-            #generated=[cut_signal(signal,sr) for signal in generated]
+            generated=[cut_signal(signal,sr) for signal in generated]
             #apply acoustic proprty finding algorithms to generated samples
-            for function, name, baseline in zip(functions, function_labels, baselines):
-                results= function(generated, sr = sr)
-                all_data[name] += results
-                ates= [x-y for x,y in zip(results, baseline)]
-                
-                outputs[f"{name}_avg"].append(np.average(ates))
-                outputs[f"{name}_std"].append(np.std(ates))
+            
+            #durations
+            results=durations(generated,sr)
+            all_data["dur"] +=results
+            #treatment effect
+            tes= [x-y for x,y in zip(results, baselines["dur"])]
+
+            outputs["dur"].append(np.average(tes))
+            outputs["dur_std"].append(np.std(tes))
+
+            #zcrs
+            results=ZCRs(generated,sr)
+            all_data["zcr"] +=results
+            tes=[x-y for x,y in zip(results, baselines["zcr"])]
+            outputs["zcr"].append(np.average(tes))
+            outputs["zcr_std"].append(np.std(tes))
+
+            #frequencies
+            avg_f0s,start_f0s,end_f0s,max_f0s,range_f0s,f1s= fundamentals(generated,sr)
+            all_data["f0"] +=avg_f0s
+            all_data["start_f0"] +=start_f0s
+            all_data["end_f0"] +=end_f0s
+            all_data["max_f0"] += max_f0s
+            all_data["range_f0"] +=range_f0s
+            all_data["f1"] +=f1s
+
+            f0_tes=[x-y for x,y in zip(results, baselines["f0"])]
+            start_tes=[x-y for x,y in zip(results, baselines["start"])]
+            end_tes=[x-y for x,y in zip(results, baselines["end"])]
+            max_tes=[x-y for x,y in zip(results, baselines["max"])]
+            range_tes=[x-y for x,y in zip(results, baselines["range"])]
+            f1_tes=[x-y for x,y in zip(results, baselines["f1"])]
+
+            outputs["f0"].append(np.average(f0_tes))
+            outputs["f0_std"].append(np.std(f0_tes))
+            outputs["start"].append(np.average(start_tes))
+            outputs["start_std"].append(np.std(start_tes))
+            outputs["end"].append(np.average(end_tes))
+            outputs["end_std"].append(np.std(end_tes))
+            outputs["max"].append(np.average(max_tes))
+            outputs["max_std"].append(np.std(max_tes))
+            outputs["range"].append(np.average(range_tes))
+            outputs["range_std"].append(np.std(range_tes))
+            outputs["f1"].append(np.average(f1_tes))
+            outputs["f1_std"].append(np.std(f1_tes))
+            
+
 
     col_names = [f"z_{num}" for num in range(z_dim)] + [f"bit_{num}" for num in range(specs["N Categories"])]
     raw_data = pd.DataFrame(all_inputs, columns=col_names)
