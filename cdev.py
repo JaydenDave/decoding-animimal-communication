@@ -161,6 +161,8 @@ def fundamentals(signals,sr):
             min_f0 = min(f0_clean)
             range_f0s.append(max_f0 - min_f0)
         except:
+            if len(avg_f0s)>len(start_f0s):
+                avg_f0s=avg_f0s[:-1]
             avg_f0s.append(np.nan)
             start_f0s.append(np.nan)
             end_f0s.append(np.nan)
