@@ -164,9 +164,7 @@ def fundamentals(signals,sr):
             avg_f0s.append(np.nan)
             start_f0s.append(np.nan)
             end_f0s.append(np.nan)
-            max_f0=max(np.nan)
             max_f0s.append(np.nan)
-            min_f0 = min(np.nan)
             range_f0s.append(np.nan)
 
     
