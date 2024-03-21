@@ -261,12 +261,12 @@ for epoch in epochs:
             all_data["range_f0"] +=range_f0s
             all_data["f1"] +=f1s
 
-            f0_tes=[x-y for x,y in zip(results, baselines["f0"])]
-            start_tes=[x-y for x,y in zip(results, baselines["start"])]
-            end_tes=[x-y for x,y in zip(results, baselines["end"])]
-            max_tes=[x-y for x,y in zip(results, baselines["max"])]
-            range_tes=[x-y for x,y in zip(results, baselines["range"])]
-            f1_tes=[x-y for x,y in zip(results, baselines["f1"])]
+            f0_tes=[x-y for x,y in zip(avg_f0s, baselines["f0"])]
+            start_tes=[x-y for x,y in zip(start_f0s, baselines["start"])]
+            end_tes=[x-y for x,y in zip(end_f0s, baselines["end"])]
+            max_tes=[x-y for x,y in zip(max_f0s, baselines["max"])]
+            range_tes=[x-y for x,y in zip(range_f0s, baselines["range"])]
+            f1_tes=[x-y for x,y in zip(f1s, baselines["f1"])]
 
             outputs["f0"].append(np.nanmean(f0_tes))
             outputs["f0_std"].append(np.nanstd(f0_tes))
