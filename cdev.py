@@ -283,6 +283,9 @@ for epoch in epochs:
 
     col_names = [f"z_{num}" for num in range(z_dim)] + [f"bit_{num}" for num in range(specs["N Categories"])]
     raw_data = pd.DataFrame(all_inputs, columns=col_names)
+    for i in all_data.values():
+        print(len(i))
+
     raw_data_results = pd.DataFrame(all_data)
     raw_data = pd.concat([raw_data,raw_data_results], axis=1)
 
