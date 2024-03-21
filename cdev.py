@@ -112,7 +112,7 @@ def ZCRs(signals, sr):
     zcrs=[]
     for signal in signals:
         zcr = lb.feature.zero_crossing_rate(y=signal,frame_length=32, hop_length=16)[0]
-        zcrs.append(np.average(zcr))
+        zcrs.append(np.nanmean(zcr))
     return zcrs
 
 def fundamentals(signals,sr):
@@ -124,41 +124,50 @@ def fundamentals(signals,sr):
     f1s=[]
 
     for signal in signals:
-        f0, voiced_flag, voiced_probs = lb.pyin(signal,
-                                                    fmin=200,
-                                                    fmax=800,
-                                                    sr =sr,
-                                                    frame_length = 1024)
+        try:
+            f0, voiced_flag, voiced_probs = lb.pyin(signal,
+                                                        fmin=200,
+                                                        fmax=800,
+                                                        sr =sr,
+                                                        frame_length = 1024)
 
-        #times = lb.times_like(f0,sr=sr,hop_length=1024//4)
+            #times = lb.times_like(f0,sr=sr,hop_length=1024//4)
 
-        #find the 2nd peak in the fft for f1
-        amplitudes = np.abs(rfft(signal))
-        peaks,y =scipy.signal.find_peaks(amplitudes,distance=100)
-        n_samples = len(signal)
-        frequencies = rfftfreq(n_samples, 1/sr)
-        peak_heights = amplitudes[peaks]
-        peak_freq_locations = frequencies[peaks]
+            #find the 2nd peak in the fft for f1
+            amplitudes = np.abs(rfft(signal))
+            peaks,y =scipy.signal.find_peaks(amplitudes,distance=100)
+            n_samples = len(signal)
+            frequencies = rfftfreq(n_samples, 1/sr)
+            peak_heights = amplitudes[peaks]
+            peak_freq_locations = frequencies[peaks]
 
-        #find index of max
-        peak_0_index= np.argmax(peak_heights)
+            #find index of max
+            peak_0_index= np.argmax(peak_heights)
 
-        #getting it to look for 2nd highest peak
-        peak_heights = np.delete(peak_heights, peak_0_index)
-        #needs the +1 because of the one removed from removing the main peak
-        second_highest= np.argmax(peak_heights)+1
-        f1s.append(peak_freq_locations[second_highest])
-        
+            #getting it to look for 2nd highest peak
+            peak_heights = np.delete(peak_heights, peak_0_index)
+            #needs the +1 because of the one removed from removing the main peak
+            second_highest= np.argmax(peak_heights)+1
+            f1s.append(peak_freq_locations[second_highest])
+            
 
-        f0_clean = [x for x in f0 if not np.isnan(x)]
+            f0_clean = [x for x in f0 if not np.isnan(x)]
 
-        avg_f0s.append(np.mean(f0_clean))
-        start_f0s.append(f0_clean[0])
-        end_f0s.append(f0_clean[-1])
-        max_f0=max(f0_clean)
-        max_f0s.append(max_f0)
-        min_f0 = min(f0_clean)
-        range_f0s.append(max_f0 - min_f0)
+            avg_f0s.append(np.mean(f0_clean))
+            start_f0s.append(f0_clean[0])
+            end_f0s.append(f0_clean[-1])
+            max_f0=max(f0_clean)
+            max_f0s.append(max_f0)
+            min_f0 = min(f0_clean)
+            range_f0s.append(max_f0 - min_f0)
+        except:
+            avg_f0s.append(np.nan)
+            start_f0s.append(np.nan)
+            end_f0s.append(np.nan)
+            max_f0=max(np.nan)
+            max_f0s.append(np.nan)
+            min_f0 = min(np.nan)
+            range_f0s.append(np.nan)
 
     
     return avg_f0s,start_f0s,end_f0s,max_f0s,range_f0s,f1s
@@ -233,15 +242,15 @@ for epoch in epochs:
             #treatment effect
             tes= [x-y for x,y in zip(results, baselines["dur"])]
 
-            outputs["dur"].append(np.average(tes))
-            outputs["dur_std"].append(np.std(tes))
+            outputs["dur"].append(np.nanmean(tes))
+            outputs["dur_std"].append(np.nanstd(tes))
 
             #zcrs
             results=ZCRs(generated,sr)
             all_data["zcr"] +=results
             tes=[x-y for x,y in zip(results, baselines["zcr"])]
-            outputs["zcr"].append(np.average(tes))
-            outputs["zcr_std"].append(np.std(tes))
+            outputs["zcr"].append(np.nanmean(tes))
+            outputs["zcr_std"].append(np.nanstd(tes))
 
             #frequencies
             avg_f0s,start_f0s,end_f0s,max_f0s,range_f0s,f1s= fundamentals(generated,sr)
@@ -259,18 +268,18 @@ for epoch in epochs:
             range_tes=[x-y for x,y in zip(results, baselines["range"])]
             f1_tes=[x-y for x,y in zip(results, baselines["f1"])]
 
-            outputs["f0"].append(np.average(f0_tes))
-            outputs["f0_std"].append(np.std(f0_tes))
-            outputs["start"].append(np.average(start_tes))
-            outputs["start_std"].append(np.std(start_tes))
-            outputs["end"].append(np.average(end_tes))
-            outputs["end_std"].append(np.std(end_tes))
-            outputs["max"].append(np.average(max_tes))
-            outputs["max_std"].append(np.std(max_tes))
-            outputs["range"].append(np.average(range_tes))
-            outputs["range_std"].append(np.std(range_tes))
-            outputs["f1"].append(np.average(f1_tes))
-            outputs["f1_std"].append(np.std(f1_tes))
+            outputs["f0"].append(np.nanmean(f0_tes))
+            outputs["f0_std"].append(np.nanstd(f0_tes))
+            outputs["start"].append(np.nanmean(start_tes))
+            outputs["start_std"].append(np.nanstd(start_tes))
+            outputs["end"].append(np.nanmean(end_tes))
+            outputs["end_std"].append(np.nanstd(end_tes))
+            outputs["max"].append(np.nanmean(max_tes))
+            outputs["max_std"].append(np.nanstd(max_tes))
+            outputs["range"].append(np.nanmean(range_tes))
+            outputs["range_std"].append(np.nanstd(range_tes))
+            outputs["f1"].append(np.nanmean(f1_tes))
+            outputs["f1_std"].append(np.nanstd(f1_tes))
             
 
 
