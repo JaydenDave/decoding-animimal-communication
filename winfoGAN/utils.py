@@ -176,7 +176,7 @@ def RMS_energy(signal, frame_size, hop_length, sr):
     t = lb.frames_to_time(frames, hop_length= hop_length, sr = sr)
     return t,rms
 
-def cut_signal(signal,sr, window_size=20):
+def cut_signal_old(signal,sr, window_size=20):
     t,rms= RMS_energy(signal,32,16,sr)
 
     num_windows = len(rms) // window_size
@@ -192,6 +192,28 @@ def cut_signal(signal,sr, window_size=20):
     signal_indexes = np.where(rms >= threshold)[0]
     start,end= signal_indexes[0], signal_indexes[-1]
     timepoints = t[start], t[end]
+    start,end = [int(round(i * sr)) for i in timepoints]
+    cut_signal = signal[start:end+1]
+    return cut_signal
+
+def cut_signal(signal,sr, frame_size=128,hop_length=16):
+
+    rms = np.array([np.sqrt(sum(k**2 for k in signal[i:i+frame_size]/frame_size)) for i in range(0, signal.size, hop_length)])
+    frames = range(0,rms.size)
+    t = lb.frames_to_time(frames, hop_length= hop_length, sr = sr)
+
+    background_noise_level = min(rms)
+    
+    std = np.std(rms)
+    threshold = background_noise_level + 1*std
+    signal_indexes = np.where(rms >= threshold)[0]
+    start= signal_indexes[0]
+    i=-1
+    while t[signal_indexes[i]] >0.6:
+        i-=1
+    end=signal_indexes[i]
+
+    timepoints = t[start]-0.02, t[end]+0.06
     start,end = [int(round(i * sr)) for i in timepoints]
     cut_signal = signal[start:end+1]
     return cut_signal
