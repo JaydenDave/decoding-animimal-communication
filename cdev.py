@@ -1,6 +1,7 @@
 import sys
 
 from winfoGAN.utils import create_inputs, avg_fundamental_freq, cut_signal
+from winfoGAN.preprocess import bandpass_filter
 #sys.path.append("winfoGAN")
 from winfoGAN.model import GAN
 from classifier.classifier import CLASSIFICATION_MODEL
@@ -194,6 +195,8 @@ for epoch in epochs:
     generated_audio = generator.predict(input)
     generated= np.squeeze(generated_audio)
 
+    #bandpass filter
+    generated =[bandpass_filter(signal,100,8000,sr = sr) for signal in generated]
     #cut audio
     generated=[cut_signal(signal,sr) for signal in generated]
 
@@ -295,5 +298,5 @@ for epoch in epochs:
     results = pd.DataFrame(outputs)
     df = pd.concat([df,results], axis=1)
 
-    df.to_csv(f"{model_directory}/Bits{epoch}.csv", index= False)
-    raw_data.to_csv(f"{model_directory}/raw_data{epoch}.csv", index= False)
+    df.to_csv(f"{model_directory}/Bits{epoch}_{str(BASELINE_DOSE)}.csv", index= False)
+    raw_data.to_csv(f"{model_directory}/raw_data{epoch}_{str(BASELINE_DOSE)}.csv", index= False)
