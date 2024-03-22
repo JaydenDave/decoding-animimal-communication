@@ -112,8 +112,11 @@ def durations(signals,sr):
 def ZCRs(signals, sr):
     zcrs=[]
     for signal in signals:
-        zcr = lb.feature.zero_crossing_rate(y=signal,frame_length=32, hop_length=16)[0]
-        zcrs.append(np.nanmean(zcr))
+        try:
+            zcr = lb.feature.zero_crossing_rate(y=signal,frame_length=32, hop_length=16)[0]
+            zcrs.append(np.nanmean(zcr))
+        except:
+            zcrs.append(zcrs[-1])
     return zcrs
 
 def fundamentals(signals,sr):
