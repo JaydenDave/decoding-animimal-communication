@@ -126,6 +126,7 @@ def fundamentals(signals,sr):
     max_f0s=[]
     range_f0s=[]
     f1s=[]
+    l1_l2s=[]
 
     for signal in signals:
         try:
@@ -135,24 +136,28 @@ def fundamentals(signals,sr):
                                                         sr =sr,
                                                         frame_length = 1024)
 
-            #times = lb.times_like(f0,sr=sr,hop_length=1024//4)
+            f0_avg = np.nanmean(f0)
 
             #find the 2nd peak in the fft for f1
             amplitudes = np.abs(rfft(signal))
-            peaks,y =scipy.signal.find_peaks(amplitudes,distance=100)
             n_samples = len(signal)
             frequencies = rfftfreq(n_samples, 1/sr)
+
+            freq_jump = frequencies[1]
+            distance =(0.9*f0_avg)/freq_jump
+            peaks,y =scipy.signal.find_peaks(amplitudes,distance=distance)
+            
             peak_heights = amplitudes[peaks]
             peak_freq_locations = frequencies[peaks]
 
             #find index of max
             peak_0_index= np.argmax(peak_heights)
 
-            #getting it to look for 2nd highest peak
-            peak_heights = np.delete(peak_heights, peak_0_index)
-            #needs the +1 because of the one removed from removing the main peak
-            second_highest= np.argmax(peak_heights)+1
-            f1s.append(peak_freq_locations[second_highest])
+            f1s.append(peak_freq_locations[peak_0_index+1])
+
+            amplitudes = peak_heights[peak_0_index:peak_0_index+2]
+            db = [20*np.log10(x) for x in amplitudes]
+            l1_l2 = abs(db[0] -db[1])
             
 
             f0_clean = [x for x in f0 if not np.isnan(x)]
@@ -164,6 +169,7 @@ def fundamentals(signals,sr):
             max_f0s.append(max_f0)
             min_f0 = min(f0_clean)
             range_f0s.append(max_f0 - min_f0)
+            l1_l2s.append(l1_l2)
         except:
             if len(avg_f0s)>len(start_f0s):
                 avg_f0s=avg_f0s[:-1]
@@ -175,9 +181,10 @@ def fundamentals(signals,sr):
             end_f0s.append(np.nan)
             max_f0s.append(np.nan)
             range_f0s.append(np.nan)
+            l1_l2.append(np.nan)
 
     
-    return avg_f0s,start_f0s,end_f0s,max_f0s,range_f0s,f1s
+    return avg_f0s,start_f0s,end_f0s,max_f0s,range_f0s,f1s,l1_l2s
 
 
 
@@ -206,7 +213,7 @@ for epoch in epochs:
     #cut audio
     generated=[cut_signal(signal,sr) for signal in generated]
 
-    avg_f0s,start_f0s,end_f0s,max_f0s,range_f0s,f1s= fundamentals(generated,sr)
+    avg_f0s,start_f0s,end_f0s,max_f0s,range_f0s,f1s,l1_l2s= fundamentals(generated,sr)
     baselines={"zcr":ZCRs(generated,sr),
                "dur":durations(generated,sr),
                "f0":avg_f0s,
@@ -214,7 +221,8 @@ for epoch in epochs:
                "end":end_f0s,
                "max":max_f0s,
                "range":range_f0s,
-               "f1":f1s}
+               "f1":f1s,
+               "l1-l2":l1_l2s}
 
 
     for dose in tqdm(dose_vals):
@@ -262,13 +270,14 @@ for epoch in epochs:
             outputs["zcr_std"].append(np.nanstd(tes))
 
             #frequencies
-            avg_f0s,start_f0s,end_f0s,max_f0s,range_f0s,f1s= fundamentals(generated,sr)
+            avg_f0s,start_f0s,end_f0s,max_f0s,range_f0s,f1s,l1_l2s= fundamentals(generated,sr)
             all_data["f0"] +=avg_f0s
             all_data["start_f0"] +=start_f0s
             all_data["end_f0"] +=end_f0s
             all_data["max_f0"] += max_f0s
             all_data["range_f0"] +=range_f0s
             all_data["f1"] +=f1s
+            all_data["l1-l2"] +=l1_l2s
 
             f0_tes=[x-y for x,y in zip(avg_f0s, baselines["f0"])]
             start_tes=[x-y for x,y in zip(start_f0s, baselines["start"])]
@@ -276,6 +285,7 @@ for epoch in epochs:
             max_tes=[x-y for x,y in zip(max_f0s, baselines["max"])]
             range_tes=[x-y for x,y in zip(range_f0s, baselines["range"])]
             f1_tes=[x-y for x,y in zip(f1s, baselines["f1"])]
+            l1_l2_tes= [x-y for x,y in zip(l1_l2s, baselines["l1-l2"])]
 
             outputs["f0"].append(np.nanmean(f0_tes))
             outputs["f0_std"].append(np.nanstd(f0_tes))
@@ -289,6 +299,8 @@ for epoch in epochs:
             outputs["range_std"].append(np.nanstd(range_tes))
             outputs["f1"].append(np.nanmean(f1_tes))
             outputs["f1_std"].append(np.nanstd(f1_tes))
+            outputs["l1-l2"].append(np.nanmean(l1_l2_tes))
+            outputs["l1-l2_std"].append(np.nanstd(l1_l2_tes))
             
 
 
