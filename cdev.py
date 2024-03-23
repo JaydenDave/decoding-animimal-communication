@@ -116,7 +116,10 @@ def ZCRs(signals, sr):
             zcr = lb.feature.zero_crossing_rate(y=signal,frame_length=32, hop_length=16)[0]
             zcrs.append(np.nanmean(zcr))
         except:
-            zcrs.append(zcrs[-1])
+            try:
+                zcrs.append(zcrs[-1])
+            except:
+                zcrs.append(np.nan)
     return zcrs
 
 def fundamentals(signals,sr):
